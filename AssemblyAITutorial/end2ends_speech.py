@@ -12,6 +12,9 @@ import torch.nn.functional as F
 import torchaudio
 import numpy as np
 
+import sounddevice as sd
+from scipy.io.wavfile import write
+
 # it gives me a warning to do this when i leave it out and run this box
 #torchaudio.USE_SOUNDFILE_LEGACY_INTERFACE = False
 
@@ -473,11 +476,11 @@ def train(model, device, train_loader, criterion, optimizer, scheduler, epoch, i
 
 def test(model, device, test_loader, criterion, epoch, iter_meter, experiment):
     print('\nevaluating…')
-    model.eval()
+    model.eval() #turns off Dropouts Layers, BatchNorm Layers etc.  (prepares for evaluation)
     test_loss = 0
     test_cer, test_wer = [], []
     with experiment.test():
-        with torch.no_grad():
+        with torch.no_grad(): #don't track gradients during eval
             for I, _data in enumerate(test_loader):
                 print("I",I, "data",type(_data),_data)
                 spectrograms, labels, input_lengths, label_lengths = _data 
@@ -510,16 +513,14 @@ def test(model, device, test_loader, criterion, epoch, iter_meter, experiment):
 
     print('Test set: Average loss: {:.4f}, Average CER: {:4f} Average WER: {:.4f}\n'.format(test_loss, avg_cer, avg_wer))
 
-
-
-if __name__=="__main__":
+def main():
     #Custome stuff here:
     #Load:
     learning_rate=5e-4
     batch_size=20
     epochs=10
     #train_url="train-clean-100"
-    test_url="test-custom" #"test-clean"
+    test_url= "test-clean" #"test-custom" #"test-clean"
 
     #experiment = #Experiment(api_key="bjeMXlR8UdmQw5PkSG7XFb6T6",project_name="asr-tutorial",workspace="akamboj2")
     experiment = Experiment(api_key='dummy_key', disabled=True)
@@ -557,6 +558,7 @@ if __name__=="__main__":
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
 
+    print("testdata type:", type(test_dataset))
     test_loader = data.DataLoader(dataset=test_dataset,
                             batch_size=hparams['batch_size'],
                             shuffle=False,
@@ -575,3 +577,118 @@ if __name__=="__main__":
     #     #train(model, device, train_loader, criterion, optimizer, scheduler, epoch, iter_meter, experiment)
     #     test(model, device, test_loader, criterion, epoch, iter_meter, experiment)
     test(model,device,test_loader,criterion,0,iter_meter,experiment)
+
+def custom_test(utterance = "NO UTTERANCE PROVIDED"):
+
+    learning_rate=5e-4
+    batch_size=20
+    epochs=10
+    hparams = {
+        "n_cnn_layers":2,#3,
+        "n_rnn_layers":3,#5,
+        "rnn_dim": 512,
+        "n_class": 29,
+        "n_feats": 128,
+        "stride":2,
+        "dropout": 0.1,
+        "learning_rate": learning_rate,
+        "batch_size": batch_size,
+        "epochs": epochs
+    }
+
+    model = SpeechRecognitionModel(
+        hparams['n_cnn_layers'], hparams['n_rnn_layers'], hparams['rnn_dim'],
+        hparams['n_class'], hparams['n_feats'], hparams['stride'], hparams['dropout']
+        ).to('cpu')
+
+    model.load_state_dict(torch.load("model-colab.pt", map_location=torch.device('cpu')))
+    model.eval()
+
+
+    waveform, sr = torchaudio.load("new_sample.flac") #torchaudio.load("61-70968-0000.flac")
+    print(waveform.size())
+    print(sr)
+
+    #utterance = "WITHOUT SAYING IT POSITIVELY SHE MADE ME UNDERSTAND THAT BEING HERSELF AN ILLUSTRIOUS MEMBER OF THE REPUBLIC OF LETTERS SHE WAS WELL AWARE THAT SHE WAS SPEAKING TO AN INSECT"
+    model.eval() #turns off Dropouts Layers, BatchNorm Layers etc.  (prepares for evaluation)
+    criterion = nn.CTCLoss(blank=28)
+    test_loss = 0
+    test_cer, test_wer = [], []
+    with torch.no_grad(): #don't track gradients during eval
+        # for I, _data in enumerate(test_loader):
+        #     print("I",I, "data",type(_data),_data)
+        _data = data_processing([(waveform, 0, utterance, 0, 0, 0)], data_type="valid")
+        spectrograms, labels, input_lengths, label_lengths = _data 
+
+        #spectrograms, labels = spectrograms.to(device), labels. to(device)
+
+        output = model(spectrograms)  # (batch, time, n_class)
+        output = F.log_softmax(output, dim=2)
+        output = output.transpose(0, 1) # (time, batch, n_class)
+
+        loss = criterion(output, labels, input_lengths, label_lengths)
+        test_loss += loss.item() / 1#len(test_loader)
+
+        decoded_preds, decoded_targets = GreedyDecoder(output.transpose(0, 1), labels, label_lengths)
+
+        print("Prediction:\n",decoded_preds)
+        print("Targets:\n",decoded_targets)
+        for j in range(len(decoded_preds)):
+            test_cer.append(cer(decoded_targets[j], decoded_preds[j]))
+            test_wer.append(wer(decoded_targets[j], decoded_preds[j]))
+
+        #stop after one loop!
+
+
+    avg_cer = sum(test_cer)/len(test_cer)
+    avg_wer = sum(test_wer)/len(test_wer)
+
+    print('Test set: Average loss: {:.4f}, Average CER: {:4f} Average WER: {:.4f}\n'.format(test_loss, avg_cer, avg_wer))
+
+def speech_pipeline(label = "THERE ARE ROBOTS ON A FARM HELPING FARMERS DO THINGS"):
+    "Records speech from python terminal and runs it through network"
+    fs = 16000  # Sample rate
+    seconds = 3  # Duration of recording
+
+    print("recording:")
+    myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=1)
+
+    sd.wait()  # Wait until recording is finished
+    print(myrecording)
+    write('output.wav', fs, myrecording)  # Save as WAV file 
+    
+    #technically don't need this middle chunk if you think torchaudio, reads .wav file or .flac file into the same spectrogram (correct spectrogram) 
+    data2, sr2 = torchaudio.load("output.wav")
+    print(data2.size())
+    print(sr2)
+    new_wave = torchaudio.transforms.Resample(sr2,16000).forward(data2)
+    torchaudio.save("new_sample.flac",new_wave,16000)
+    
+    custom_test(label) 
+
+def speech_from_file(file, label):
+    "takes a recorded speech file and runs it throug the NN"
+    #technically don't need this middle chunk if you think torchaudio, reads .wav file or .flac file into the same spectrogram (correct spectrogram) 
+    data2, sr2 = torchaudio.load(file) 
+    print(data2.size())
+    print(sr2)
+    new_wave = torchaudio.transforms.Resample(sr2,16000).forward(data2)
+    torchaudio.save("new_sample.flac",new_wave,16000)
+    
+    custom_test(label) #torch.from_numpy(myrecording)
+
+if __name__=="__main__":
+    #main() #uncomment to run the files
+    
+    # data, sr = torchaudio.load("61-70968-0000.flac")
+    # print(data.size())
+    # print(sr)
+
+    
+    speech_pipeline()
+
+
+    #speech_from_file("61-70968-0000-personal.flac","THERE ARE ROBOTS ON A FARM HELPING FARMERS DO THINGS")
+   
+
+    
