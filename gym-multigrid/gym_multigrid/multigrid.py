@@ -1246,12 +1246,15 @@ class MultiGridEnv(gym.Env):
     def step(self, actions):
         self.step_count += 1
 
-        order = np.random.permutation(len(actions))
+        #order = np.random.permutation(len(actions))
+        #^why would we want to process the order of agents randomly?
+        order = list(range(len(actions)))
 
         rewards = np.zeros(len(actions))
         done = False
 
         at_wall = []
+        dirs = []
         for i in order:
 
             if self.agents[i].terminated or self.agents[i].paused or not self.agents[i].started or actions[i] == self.actions.still:
@@ -1266,7 +1269,7 @@ class MultiGridEnv(gym.Env):
             # Rotate left
             if actions[i] == self.actions.left:
                 self.agents[i].dir -= 1
-                if self.agents[i].dir < 0:
+                if self.agents[i].dir < 0: 
                     self.agents[i].dir += 4
 
             # Rotate right
@@ -1285,7 +1288,6 @@ class MultiGridEnv(gym.Env):
                     self.grid.set(*fwd_pos, self.agents[i])
                     self.grid.set(*self.agents[i].pos, None)
                     self.agents[i].pos = fwd_pos
-                at_wall.append(self._handle_special_moves(i, rewards, fwd_pos, fwd_cell))
 
             elif 'build' in self.actions.available and actions[i]==self.actions.build:
                 self._handle_build(i, rewards, fwd_pos, fwd_cell)
@@ -1310,6 +1312,12 @@ class MultiGridEnv(gym.Env):
             else:
                 assert False, "unknown action"
 
+            #custom returns
+            fwd_cell_post_action =  self.grid.get(*self.agents[i].front_pos)
+            #note: for the turn actions we want to see what's infront AFTER we have turned
+            at_wall.append(self._handle_special_moves(i, rewards, self.agents[i].front_pos, fwd_cell_post_action))
+            dirs.append(self.agents[i].dir)
+
         if self.step_count >= self.max_steps:
             done = True
 
@@ -1320,7 +1328,8 @@ class MultiGridEnv(gym.Env):
 
         obs=[self.objects.normalize_obs*ob for ob in obs]
 
-        return obs, rewards, done, at_wall
+        info = {'walls': at_wall,'dir':dirs}
+        return obs, rewards, done, info
 
     def gen_obs_grid(self):
         """

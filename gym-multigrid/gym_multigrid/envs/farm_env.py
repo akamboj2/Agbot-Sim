@@ -98,8 +98,9 @@ class FarmEnv(MultiGridEnv):
         return obs, rewards, done, info
 
     def _handle_special_moves(self, i, rewards, fwd_pos, fwd_cell):
+        #wait i actually don't need this callback. can just do this logic in multigrid! before line 1328
         """
-        #NOTE: This sis called on every move!
+        #NOTE: This is called on every move!
         i : agent you are stepping for's index
         rewards : array of awards given ()
         fwd_pos : [x,y] array of position
@@ -107,10 +108,10 @@ class FarmEnv(MultiGridEnv):
         """
         
         if type(fwd_cell) == gym_multigrid.multigrid.Ball:
-            print("Error at robot",i) 
+#            print("Error at robot",i) 
             return 2
         elif type(fwd_cell) == gym_multigrid.multigrid.Wall:
-            print(i, " hit a wall")
+#            print(i, " hit a wall")
             return 1
         return 0
         
@@ -118,7 +119,7 @@ class FarmEnv(MultiGridEnv):
 
 class FarmEnv50x50(FarmEnv):
     def __init__(self):
-        super().__init__(size=50,
+        super().__init__(size=20, #tianchen recommends 50
         num_balls=[5],
         agents_index = [1,2,3],
         balls_index=[0],

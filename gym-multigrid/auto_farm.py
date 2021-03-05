@@ -2,6 +2,37 @@ import gym
 import time
 from gym.envs.registration import register
 import numpy as np
+import threading
+#import farm_speech
+import pyttsx3 
+
+threads = []
+
+def SpeakText(command): 
+	
+	# Initialize the engine 
+	engine = pyttsx3.init() 
+	engine.say(command) 
+	engine.runAndWait() 
+
+class myThread (threading.Thread):
+   def __init__(self, threadID, name):
+      threading.Thread.__init__(self)
+      self.threadID = threadID
+      self.name = name
+      self.terminated = 0
+   def run(self):
+        while(True): 
+            print('IN THREAD',self.threadID)
+            SpeakText("Error at "+self.name)
+            a = input("Press enter")
+            if a =='a':
+                
+                break
+        print("Exiting THREAD",self.threadID)
+        self.terminated = 1
+        # threads[self.threadID] = myThread(self.threadID,"Robot-"+str(self.threadID),5)
+        # threads[self.threadID].daemon = True
 # import argparse
 
 # parser = argparse.ArgumentParser(description=None)
@@ -22,31 +53,48 @@ def main():
     nb_agents = len(env.agents)
 
     actions = {'left':1,'right':2,'forward':3}
+    directions = {0:'right', 1:'down', 2:'left', 3:'up'}
     act = ['forward']*3 #this holds either a list of actions or a single action
     wall_left = ['left', 'forward', 'left']
+    wall_right = ['right','forward','right']
     counters = [0,0,0]
-
+    follow_actions = [0]*3 #indicates if a robot is following a list
+    walls = [0,0,0]
+    dir = [0,0,0]
+    for i in range(3):
+        threads.append(myThread(i,"Robot-"+str(i)))
+        threads[i].daemon = True #kills the thread when main program exits
     while True:
         env.render(mode='human', highlight=True)
-        time.sleep(0.1)
+        time.sleep(.3)
 
-        #ac = [env.action_space.sample() for _ in range(nb_agents)]
+ #       print("threads",list(threading.enumerate()))
         for i in range(3):
-            if type(act[i])==list:
-                if counters[i]==len(act[i])-1:
-                    counters[i]=-1
+            if walls[i]==1:
+                follow_actions[i] = wall_left if dir[i]=='down' else wall_right
+            elif walls[i]==2 and not threads[i].is_alive(): #we're at an object
+                if threads[i].terminated:
+                    threads[i] = threads[i] = myThread(i,"Robot-"+str(i))
+                    threads[i].daemon = True
+                threads[i].start()
+            if type(follow_actions[i])==list:
+  #              print("follow_actions",follow_actions)
+  #              print("following_actions bot ",i,"counter",counters[i])
+                if counters[i]==len(follow_actions[i]):
+                    counters[i]=0
+                    follow_actions[i]=0
+                    act[i] = 'forward' #default action
                 else:
+                    act[i] = follow_actions[i][counters[i]] 
                     counters[i]+=1
+  #      print(act)
+  #      print("action numbers:",list(map(lambda x:actions[x],act)))
             
-
-        ac = [3,3,3]
-        # for ind,i in enumerate(at_wall):
-        #     if i==1:
-        #         ac[ind]=1,1
-        obs, reward, done, info = env.step(map(act,lambda x:actions[x]))
+        obs, reward, done, info = env.step(list(map(lambda x: actions[x],act)))
         #print(np.array(obs).flatten().size)
-        print("wall?",info)
-        
+  #      print("info:",info)
+        walls = info['walls']
+        dir = list(map(lambda x: directions[x], info['dir']))
         
         if done:
             break
@@ -63,6 +111,9 @@ available=['still', 'left', 'right', 'forward', 'pickup', 'drop', 'toggle', 'don
 
 
 #directions are 0 1 2 3 right down left up
+    down
+left    right
+    up
 # Map of agent direction indices to vectors
 DIR_TO_VEC = [
     # Pointing right (positive X)
