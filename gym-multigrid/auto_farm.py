@@ -28,6 +28,7 @@ class myThread (threading.Thread):
                     if robots[num][0]==0: #fixes robot with error code zero
                         speech.hear_command("fix robot")
                         print("Robot",num,"fixed!")
+                        robots[num][1]=True
                     #break
                 else:
                     print("That robot number is not broken")
@@ -77,27 +78,20 @@ class Controller():
                 #if you hit a wall, perform sequence of actions to turn around
                 self.follow_actions[i] = self.wall_left if self.dir[i]=='down' else self.wall_right
             elif self.objs[i]==2:
+                print("Robots dict in ctrl thread",list(robots.items()))
                 if i in robots:
                     if robots[i][1]: #if it's fixed
-                        self.follow_actions = self.solve_error1
+                        self.follow_actions[i] = self.solve_error1
                         del robots[i] #delete item from robot
                 else:
-                    print("Adding to dict")
+                    print("Adding robot {} to failure list".format(i))
                     robots[i] = [0,False] #need some sort of struct for error type
-            """and not self.threads[i].is_alive(): 
-                #if we're at an error
-                if self.threads[i].terminated: #goes in here if you just exited thread
-                    #need to recreate terminated thread
-                    self.threads[i] = myThread(i,"Robot-"+str(i)) 
-                    self.threads[i].daemon = True
-                
-                self.threads[i].start()"""
             
-            if type( self.follow_actions[i])==list:
+            if type(self.follow_actions[i])==list:
                 #if we are following a list of actions increment through list, otherwise just hold the current action
-    #              print("follow_actions",follow_actions)
-    #              print("following_actions bot ",i,"counter",counters[i])
-                if  self.counters[i]==len( self.follow_actions[i]):
+                print("follow_actions",self.follow_actions[i])
+                print("following_actions bot ",i,"counter",self.counters[i])
+                if  self.counters[i]==len(self.follow_actions[i]):
                     #we're on the last action, get rid of counter and list of actions, time to go forward only
                      self.counters[i]=0
                      self.follow_actions[i]=0

@@ -95,12 +95,14 @@ class FarmEnv(MultiGridEnv):
                     rewards[j] -= reward
 
     def _handle_pickup(self, i, rewards, fwd_pos, fwd_cell):
+        print("picking it up!",fwd_cell,fwd_pos)
         if fwd_cell:
             if fwd_cell.can_pickup():
-                if fwd_cell.index in [0, self.agents[i].index]:
-                    fwd_cell.cur_pos = np.array([-1, -1])
-                    self.grid.set(*fwd_pos, None)
-                    self._reward(i, rewards, fwd_cell.reward)
+                #if fwd_cell.index in [0, self.agents[i].index]: 
+                #oh i think index is the color! of ball or agent! lol so only red agent can pick up red ball? no thanks
+                fwd_cell.cur_pos = np.array([-1, -1])
+                self.grid.set(*fwd_pos, None)
+                self._reward(i, rewards, fwd_cell.reward)
 
     def _handle_drop(self, i, rewards, fwd_pos, fwd_cell):
         pass
