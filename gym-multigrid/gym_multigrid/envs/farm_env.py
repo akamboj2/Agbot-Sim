@@ -13,22 +13,34 @@ class FarmEnv(MultiGridEnv):
         height=None,
         num_balls=[],
         agents_index = [],
+        agents_loc = [],
         balls_index=[],
         balls_reward=[],
+        balls_loc=[],
         zero_sum = False,
         view_size=7
 
     ):
+        """ num_balls: indicates the number balls in each color set
+            agents_index: list of agent indices; agents with same index will be same color
+            agents_loc: list of (x,y) tuples indicating starting location of each agent
+            balls_index: list of ball indices (distinguishes color)
+            balls_reward: unused
+            balls_loc: list of list of (x,y) tuples indicating starting location of each ball in each color set of balls
+        """
         self.num_balls = num_balls
         self.balls_index = balls_index
         self.balls_reward = balls_reward
+        self.balls_loc = balls_loc
         self.zero_sum = zero_sum
 
         self.world = World
 
         agents = []
-        for i in agents_index:
+        for i in agents_index: #if two agents have same i, they'll be same color
             agents.append(Agent(self.world, i, view_size=view_size))
+
+        self.agents_loc = agents_loc
 
         super().__init__(
             grid_size=size,
@@ -52,9 +64,11 @@ class FarmEnv(MultiGridEnv):
         self.grid.vert_wall(self.world, 0, 0)
         self.grid.vert_wall(self.world, width-1, 0)
 
-        for number, index, reward in zip(self.num_balls, self.balls_index, self.balls_reward):
+        
+        for number, index, location in zip(self.num_balls, self.balls_index, self.balls_loc):
+            print("gen_grid balls", number,index,location)
             for i in range(number):
-                self.place_obj(Ball(self.world, index, reward))
+                self.place_obj(Ball(self.world, index),top=location[i], size=(1,1))
 
         # Randomize the player start position and orientation
         # for a in self.agents:
@@ -62,12 +76,10 @@ class FarmEnv(MultiGridEnv):
 
         #NOTE: on 20x20 the top left most placeable square is 1,1 and the btm right most is 18,18 (the walls count towards the 20x20) 
         # oh also size is if you want to randomly place it in a subgrid from top as top left corner of size size
-        self.agents[0].dir = 1
-        self.agents[1].dir = 1
-        self.agents[2].dir = 1
-        self.place_agent(self.agents[0], top=(1,1), size = (1,1), rand_dir = False)
-        self.place_agent(self.agents[1],top=(6,1), size = (1,1), rand_dir = False)
-        self.place_agent(self.agents[2],top=(15,1), size = (1,1), rand_dir = False)
+        for agent,loc in zip(self.agents, self.agents_loc):
+            print("gen agents:",agent,loc)
+            agent.dir = 1
+            self.place_agent(agent,top=loc, size = (1,1), rand_dir = False)
 
 
     def _reward(self, i, rewards, reward=1):
@@ -119,11 +131,24 @@ class FarmEnv(MultiGridEnv):
 
 class FarmEnv50x50(FarmEnv):
     def __init__(self):
-        super().__init__(size=20, #tianchen recommends 50
-        num_balls=[5],
-        agents_index = [1,2,3],
-        balls_index=[0],
+        super().__init__(size=33, #tianchen recommends 50
+        num_balls=[3,2,1], 
+        agents_index = [0,1,2],
+        agents_loc = [(1,1),(10,1),(20,1)],
+        balls_index=[0,1,2],
         balls_reward=[1],
+        balls_loc = [[(25,2),(9,8),(5,6)],[(6,7),(18,16)],[(15,9)]],
+        zero_sum=True)
+
+class TestFarm5x5(FarmEnv):
+    def __init__(self):
+        super().__init__(size=7, #tianchen recommends 50
+        num_balls=[1,1,1], 
+        agents_index = [0],
+        agents_loc = [(1,1)],
+        balls_index=[0,1,2],
+        balls_reward=[1],
+        balls_loc = [[(1,4)],[(2,3)],[(3,4)]],
         zero_sum=True)
 
 """

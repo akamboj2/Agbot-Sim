@@ -1253,7 +1253,7 @@ class MultiGridEnv(gym.Env):
         rewards = np.zeros(len(actions))
         done = False
 
-        at_wall = []
+        at_obj = []
         dirs = []
         for i in order:
 
@@ -1315,7 +1315,8 @@ class MultiGridEnv(gym.Env):
             #custom returns
             fwd_cell_post_action =  self.grid.get(*self.agents[i].front_pos)
             #note: for the turn actions we want to see what's infront AFTER we have turned
-            at_wall.append(self._handle_special_moves(i, rewards, self.agents[i].front_pos, fwd_cell_post_action))
+            #the _handle_sepcial_moves callback is define by child class
+            at_obj.append(self._handle_special_moves(i, rewards, self.agents[i].front_pos, fwd_cell_post_action))
             dirs.append(self.agents[i].dir)
 
         if self.step_count >= self.max_steps:
@@ -1328,7 +1329,7 @@ class MultiGridEnv(gym.Env):
 
         obs=[self.objects.normalize_obs*ob for ob in obs]
 
-        info = {'walls': at_wall,'dir':dirs}
+        info = {'objs': at_obj,'dir':dirs}
         return obs, rewards, done, info
 
     def gen_obs_grid(self):
