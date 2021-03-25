@@ -6,13 +6,14 @@ import speech_recognition as sr
 import pyttsx3 
 
 def SpeakText(command): 
-	
+	"""Speaks a command"""
 	# Initialize the engine 
 	engine = pyttsx3.init() 
 	engine.say(command) 
 	engine.runAndWait() 
 
-def hear_command():
+def hear_command(desired_cmd):
+    """waits for user to say a certain command and returns that command"""
     r = sr.Recognizer() 
     # Loop infinitely for user to 
     # speak 
@@ -39,8 +40,8 @@ def hear_command():
                 MyText = MyText.lower() 
 
                 print("Did you say "+MyText)
-                if MyText=="fix robot": 
-                    return 1
+                if MyText==desired_cmd: 
+                    return 0
         except sr.RequestError as e: 
             print("Could not request results; {0}".format(e)) 
             

@@ -5,9 +5,7 @@ import numpy as np
 import threading
 import farm_speech as speech
 
-threads = []
-
-
+robots = {} #holds key:val robot_id:[failure_num, is_fixed]
 
 
 class myThread (threading.Thread):
@@ -16,16 +14,24 @@ class myThread (threading.Thread):
       self.threadID = threadID
       self.name = name
       self.terminated = 0
+    
    def run(self):
-        #while(True): 
-        print('Error - IN THREAD',self.threadID)
-        speech.SpeakText("Error at "+self.name)
-       # a = input("Press enter\n")
-        # if a =='a':
-            
-        #     break
-        speech.hear_command()
-        print("Exiting THREAD",self.threadID)
+        #print('Error - IN THREAD',self.threadID)
+        global robots
+        while True:
+            if robots: #empty dictionary evals to false
+                speech.SpeakText("Error at robots"+str(list(robots.keys())))
+                #while True: 
+                num = int(input("Press robot number to diagnose\n"))
+               # print(list(robots),num,"bool", bool(num in robots), bool(robots[num]))
+                if num in robots:
+                    if robots[num][0]==0: #fixes robot with error code zero
+                        speech.hear_command("fix robot")
+                        print("Robot",num,"fixed!")
+                    #break
+                else:
+                    print("That robot number is not broken")
+                        
         self.terminated = 1
         # threads[self.threadID] = myThread(self.threadID,"Robot-"+str(self.threadID),5)
         # threads[self.threadID].daemon = True
@@ -35,7 +41,7 @@ class myThread (threading.Thread):
 #parser.add_argument('-e', '--env', default='soccer', type=str)
 
 #args = parser.parse_args()
-
+ 
 class Controller():
     def __init__(self, num_agents):
 
@@ -55,26 +61,37 @@ class Controller():
         self.follow_actions = [0]*num_agents #boolean array, indicates if a robot is following a list
         self.objs = [0]*num_agents #0=nothing, 1=wall, 2=obstacle
         self.dir = [0]*num_agents
-        self.threads = []
+       # self.threads = []
 
         #initialize threads
-        for i in range(num_agents):
-            self.threads.append(myThread(i,"Robot-"+str(i)))
-            self.threads[i].daemon = True #kills the thread when main program exitss
+        # for i in range(num_agents):
+        self.thread = myThread(0,"Robot-Thread")
+        self.thread.daemon = True #kills the thread when main program exitss
+        print("creating thread")
+        self.thread.start()
 
     def next_action(self):
+        global robots
         for i in range(self.num_agents):
             if self.objs[i]==1:
                 #if you hit a wall, perform sequence of actions to turn around
                 self.follow_actions[i] = self.wall_left if self.dir[i]=='down' else self.wall_right
-            elif self.objs[i]==2 and not self.threads[i].is_alive(): 
+            elif self.objs[i]==2:
+                if i in robots:
+                    if robots[i][1]: #if it's fixed
+                        self.follow_actions = self.solve_error1
+                        del robots[i] #delete item from robot
+                else:
+                    print("Adding to dict")
+                    robots[i] = [0,False] #need some sort of struct for error type
+            """and not self.threads[i].is_alive(): 
                 #if we're at an error
                 if self.threads[i].terminated: #goes in here if you just exited thread
                     #need to recreate terminated thread
                     self.threads[i] = myThread(i,"Robot-"+str(i)) 
                     self.threads[i].daemon = True
                 
-                self.threads[i].start()
+                self.threads[i].start()"""
             
             if type( self.follow_actions[i])==list:
                 #if we are following a list of actions increment through list, otherwise just hold the current action
@@ -111,6 +128,7 @@ def main():
 
     #ctrl = Controller(3)
     ctrl = Controller(1)
+
     while True:
         env.render(mode='human', highlight=True)
         time.sleep(.3)
