@@ -29,6 +29,14 @@ class myThread (threading.Thread):
                         speech.hear_command("fix robot")
                         print("Robot",num,"fixed!")
                         robots[num][1]=True
+                    elif robots[num][0]==1: #fixes robot with error code zero
+                        speech.hear_command("move around")
+                        print("Robot",num,"fixed!")
+                        robots[num][1]=True
+                    elif robots[num][0]==2: #fixes robot with error code zero
+                        speech.hear_command("sending human")
+                        print("Robot",num,"fixed!")
+                        robots[num][1]=True
                     #break
                 else:
                     print("That robot number is not broken")
@@ -77,20 +85,20 @@ class Controller():
             if self.objs[i]==1:
                 #if you hit a wall, perform sequence of actions to turn around
                 self.follow_actions[i] = self.wall_left if self.dir[i]=='down' else self.wall_right
-            elif self.objs[i]==2:
-                print("Robots dict in ctrl thread",list(robots.items()))
+            elif self.objs[i]>=2: #so self.objs after 2 is the ball index
+                #print("Robots dict in ctrl thread",list(robots.items()))
                 if i in robots:
                     if robots[i][1]: #if it's fixed
                         self.follow_actions[i] = self.solve_error1
                         del robots[i] #delete item from robot
                 else:
                     print("Adding robot {} to failure list".format(i))
-                    robots[i] = [0,False] #need some sort of struct for error type
+                    robots[i] = [self.objs[i]-2,False] #need some sort of struct for error type
             
             if type(self.follow_actions[i])==list:
                 #if we are following a list of actions increment through list, otherwise just hold the current action
-                print("follow_actions",self.follow_actions[i])
-                print("following_actions bot ",i,"counter",self.counters[i])
+    #            print("follow_actions",self.follow_actions[i])
+    #            print("following_actions bot ",i,"counter",self.counters[i])
                 if  self.counters[i]==len(self.follow_actions[i]):
                     #we're on the last action, get rid of counter and list of actions, time to go forward only
                      self.counters[i]=0
@@ -100,6 +108,8 @@ class Controller():
                     #still on list of aciton, keep incrementing through it
                      self.act[i] =  self.follow_actions[i][self.counters[i]] 
                      self.counters[i]+=1
+        #    else:
+        #        print("moved default forward")
 
         return list(map(lambda x: self.actions[x],self.act))
 

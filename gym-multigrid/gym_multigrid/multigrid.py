@@ -1315,7 +1315,7 @@ class MultiGridEnv(gym.Env):
             #custom returns
             fwd_cell_post_action =  self.grid.get(*self.agents[i].front_pos)
             #note: for the turn actions we want to see what's infront AFTER we have turned
-            #the _handle_sepcial_moves callback is define by child class
+                #the _handle_sepcial_moves callback is define by child class
             at_obj.append(self._handle_special_moves(i, rewards, self.agents[i].front_pos, fwd_cell_post_action))
             dirs.append(self.agents[i].dir)
 

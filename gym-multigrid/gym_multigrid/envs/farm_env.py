@@ -123,7 +123,7 @@ class FarmEnv(MultiGridEnv):
         
         if type(fwd_cell) == gym_multigrid.multigrid.Ball:
 #            print("Error at robot",i) 
-            return 2
+            return 2 + fwd_cell.index
         elif type(fwd_cell) == gym_multigrid.multigrid.Wall:
 #            print(i, " hit a wall")
             return 1
@@ -156,4 +156,9 @@ class TestFarm5x5(FarmEnv):
 """
 helpful link how to setup custom environments:
 https://stackoverflow.com/questions/52727233/how-can-i-register-a-custom-environment-in-openais-gym
+
+0 Red
+1 Green
+2 Blue
+
 """
