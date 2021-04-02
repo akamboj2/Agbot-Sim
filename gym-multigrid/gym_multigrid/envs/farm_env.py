@@ -145,13 +145,13 @@ class FarmEnv50x50(FarmEnv):
 
 class TestFarm5x5(FarmEnv):
     def __init__(self):
-        super().__init__(size=7, #tianchen recommends 50
+        super().__init__(size=18, #tianchen recommends 50
         num_balls=[1,1], 
-        agents_index = [0],
-        agents_loc = [(1,1)],
+        agents_index = [0,1],
+        agents_loc = [(1,1),(3,1)],
         balls_index=[0,2],
         balls_reward=[1],
-        balls_loc = [[(1,4)],[(5,5)]],
+        balls_loc = [[(1,4)],[(4,2)]],
         zero_sum=True)
 
 # class TestFarm5x5(FarmEnv):
