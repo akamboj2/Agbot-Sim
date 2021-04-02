@@ -120,9 +120,10 @@ class FarmEnv(MultiGridEnv):
         fwd_pos : [x,y] array of position
         fwd_cell: obj that it is at the cell infront of you
         """
-        
+       # print("HERE IN HANDLES SPCECIAL MOVES!")
+       # print("fwd_cell",fwd_cell)
         if type(fwd_cell) == gym_multigrid.multigrid.Ball:
-#            print("Error at robot",i) 
+            #print("Error at robot",i, fwd_cell) 
             return 2 + fwd_cell.index
         elif type(fwd_cell) == gym_multigrid.multigrid.Wall:
 #            print(i, " hit a wall")
@@ -145,13 +146,24 @@ class FarmEnv50x50(FarmEnv):
 class TestFarm5x5(FarmEnv):
     def __init__(self):
         super().__init__(size=7, #tianchen recommends 50
-        num_balls=[1,1,1], 
+        num_balls=[1,1], 
         agents_index = [0],
         agents_loc = [(1,1)],
-        balls_index=[0,1,2],
+        balls_index=[0,2],
         balls_reward=[1],
-        balls_loc = [[(1,4)],[(2,3)],[(3,4)]],
+        balls_loc = [[(1,4)],[(5,5)]],
         zero_sum=True)
+
+# class TestFarm5x5(FarmEnv):
+#     def __init__(self):
+#         super().__init__(size=7, #tianchen recommends 50
+#         num_balls=[1,1,1], 
+#         agents_index = [0],
+#         agents_loc = [(1,1)],
+#         balls_index=[0,1,2],
+#         balls_reward=[1],
+#         balls_loc = [[(1,4)],[(2,3)],[(3,4)]],
+#         zero_sum=True)
 
 """
 helpful link how to setup custom environments:
