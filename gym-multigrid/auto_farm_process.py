@@ -18,106 +18,33 @@ import easygui
 #any_fixed = 0
     
 def run(robots, any_fixed):
-    num = 0
-    def callback1():
-        if num not in robots:
-            print("That robot number is not broken")
-            return
-        print("fixing error 0:")
-        speech.hear_command("fix robot")
-        print("Robot",0,"fixed!")
-        robots[0][1]=True
-        any_fixed.value=1
-    def callback2():
-        if num not in robots:
-            print("That robot number is not broken")
-            return
-        print("fixing error 1:")
-        speech.hear_command("move around")
-        print("Robot",num,"fixed!")
-        robots[num][1]=True
-        any_fixed.value=1
-    def callback3():
-        if num not in robots:
-            print("That robot number is not broken")
-            return
-        print("fixing error 2:")
-        speech.hear_command("sending human")
-        print("Robot",num,"fixed!")
-        robots[num][1]=True
-        any_fixed.value=1
-
-    # root=Tk() 
-    # var = StringVar()
-    # p1=Label(root, textvariable=var) 
-    # p1.pack()
     
     print("In process!")
+    error_fixes = ["fix robot", "move around", "sending human"]
+
     while True:
-        print("in speech robots:_run",robots,any_fixed)
+    #    print("in speech robots:_run",robots,any_fixed)
         #if something in dictionary and all robots are not fixed (is_fixed==0), then
         if robots and not any_fixed.value:#not reduce((lambda x,y: x or y),np.append(np.array(list(robots.values()))[:,1],0)): 
             print("reported error")
             #sys.stdout.flush()
             speech.SpeakText("Error at robots"+str(list(robots.keys())))
-            #while True: 
-            #var.set("Error at robots"+str(list(robots.keys())))
 
             print("right before forloop",robots)
-            # R = []
-            # for i in range(5):
-            #     R.append(Radiobutton(root,text="Robot "+str(i), variable = num, value = i))
-            #     R[i].pack()
-            callbacks = [callback1,callback2,callback3]
+           # callbacks = [callback1,callback2,callback3]
             
-            num = int(easygui.buttonbox("Error at robots"+str(list(robots.keys())), 'Fix Robot', list(map(lambda x: str(x), robots.keys())))) #('0','1', '2')))
-            callbacks[robots[num][0]]()
-            # B = Button(root, text ="Fix Robot", command = callbacks[robots[num][0]])
-            # B.pack()
-            # print("new mainloop")
-            # root.mainloop()
-    """
-    print("In process!")
-    def check_robots():
-        #while True:
-        print("in speech robots:_run",robots,any_fixed)
-        #if something in dictionary and all robots are not fixed (is_fixed==0), then
-        if robots and not any_fixed.value:#not reduce((lambda x,y: x or y),np.append(np.array(list(robots.values()))[:,1],0)): 
-            print("reported error")
-            #sys.stdout.flush()
-            speech.SpeakText("Error at robots"+str(list(robots.keys())))
-            #while True: 
-            var.set("Error at robots"+str(list(robots.keys())))
-            #print("right before forloop",robots)
-    def cb_wrapper():
-        print("Num = ",num)
-        callbacks[robots[num][0]]()
-    #R = []
-    # for i in range(5):
-    #     R.append(Radiobutton(root,text="Robot "+str(i), variable = num, value = i))
-    #     R[i].pack()
-    R = Radiobutton(root,text="Robot "+str(i), variable = num, value = i)
-    callbacks = [callback1,callback2,callback3]
-    B = Button(root, text ="Fix Robot", command = cb_wrapper)
-    B.pack()
-    B2 = Button(root, text="Refresh", command=check_robots)
-    B2.pack()
-    print("new mainloop")
-    root.mainloop()
+            robot_num = easygui.buttonbox("Error at robots"+str(list(robots.keys()))+"\n \
+            what robot would you like to fix? ", 'Fix Robot', list(map(lambda x: str(x), robots.keys()))) #('0','1', '2')))
+            #callbacks[robots[robot_num][0]]()
+            if robot_num is not None:
+                robot_num = int(robot_num)
+                error = robots[robot_num][0]
+                print("fixing error {}:".format(error))
+                speech.hear_command(error_fixes[error])
+                robots[robot_num][1]=True
+                any_fixed.value = 1 #do i still need this? forgot what it was for.
 
-    #the problem with this method is that i couldn't get past root.mainloop() to continously check and update robots. 
-    #apparentlyt he root.quit() would have done that tho. if I called root.quit() in one of the callbacks
-    """        
-        
-    #self.terminated = 1
-    # threads[self.threadID] = myThread(self.threadID,"Robot-"+str(self.threadID),5)
-    # threads[self.threadID].daemon = True
-# import argparse
 
-# parser = argparse.ArgumentParser(description=None)
-#parser.add_argument('-e', '--env', default='soccer', type=str)
-
-#args = parser.parse_args()
  
 class Controller():
     def __init__(self, num_agents):
@@ -255,16 +182,9 @@ DIR_TO_VEC = [
 """
 NEXT STEPS:
 - add multiple agents and test!
-- fix slowness bugs!
 - replace speech recognition with sounds and full speech rec (harder than will be)
-- add tkinter itf
 - design 3-6 environments
 - make portable
 - read papers and develop survey questions
 - begin testing
-
-_________________________]
-with multiprocessing:
-* i don't think the multigrid process is reading the dictionary correctly. 
-try printing just that! (bc after it fixes the robot in speech thread, the ball doesn't get picked up!)
 """
