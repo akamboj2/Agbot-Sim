@@ -10,12 +10,12 @@ import multiprocessing as mp
 
 from tkinter import * 
 import sys
+
+import easygui
  
 
 #robots = {} #holds key:val robot_id:[failure_num, is_fixed]
 #any_fixed = 0
-
-
     
 def run(robots, any_fixed):
     num = 0
@@ -47,11 +47,11 @@ def run(robots, any_fixed):
         robots[num][1]=True
         any_fixed.value=1
 
-    root=Tk() 
-    var = StringVar()
-    p1=Label(root, textvariable=var) 
-    p1.pack()
-    """
+    # root=Tk() 
+    # var = StringVar()
+    # p1=Label(root, textvariable=var) 
+    # p1.pack()
+    
     print("In process!")
     while True:
         print("in speech robots:_run",robots,any_fixed)
@@ -61,18 +61,21 @@ def run(robots, any_fixed):
             #sys.stdout.flush()
             speech.SpeakText("Error at robots"+str(list(robots.keys())))
             #while True: 
-            var.set("Error at robots"+str(list(robots.keys())))
+            #var.set("Error at robots"+str(list(robots.keys())))
 
             print("right before forloop",robots)
-            R = []
-            for i in range(5):
-                R.append(Radiobutton(root,text="Robot "+str(i), variable = num, value = i))
-                R[i].pack()
+            # R = []
+            # for i in range(5):
+            #     R.append(Radiobutton(root,text="Robot "+str(i), variable = num, value = i))
+            #     R[i].pack()
             callbacks = [callback1,callback2,callback3]
-            B = Button(root, text ="Fix Robot", command = callbacks[robots[num][0]])
-            B.pack()
-            print("new mainloop")
-            root.mainloop()
+            
+            num = int(easygui.buttonbox("Error at robots"+str(list(robots.keys())), 'Fix Robot', list(map(lambda x: str(x), robots.keys())))) #('0','1', '2')))
+            callbacks[robots[num][0]]()
+            # B = Button(root, text ="Fix Robot", command = callbacks[robots[num][0]])
+            # B.pack()
+            # print("new mainloop")
+            # root.mainloop()
     """
     print("In process!")
     def check_robots():
@@ -85,15 +88,15 @@ def run(robots, any_fixed):
             speech.SpeakText("Error at robots"+str(list(robots.keys())))
             #while True: 
             var.set("Error at robots"+str(list(robots.keys())))
-
             #print("right before forloop",robots)
     def cb_wrapper():
         print("Num = ",num)
         callbacks[robots[num][0]]()
-    R = []
-    for i in range(5):
-        R.append(Radiobutton(root,text="Robot "+str(i), variable = num, value = i))
-        R[i].pack()
+    #R = []
+    # for i in range(5):
+    #     R.append(Radiobutton(root,text="Robot "+str(i), variable = num, value = i))
+    #     R[i].pack()
+    R = Radiobutton(root,text="Robot "+str(i), variable = num, value = i)
     callbacks = [callback1,callback2,callback3]
     B = Button(root, text ="Fix Robot", command = cb_wrapper)
     B.pack()
@@ -101,7 +104,10 @@ def run(robots, any_fixed):
     B2.pack()
     print("new mainloop")
     root.mainloop()
-            
+
+    #the problem with this method is that i couldn't get past root.mainloop() to continously check and update robots. 
+    #apparentlyt he root.quit() would have done that tho. if I called root.quit() in one of the callbacks
+    """        
         
     #self.terminated = 1
     # threads[self.threadID] = myThread(self.threadID,"Robot-"+str(self.threadID),5)
