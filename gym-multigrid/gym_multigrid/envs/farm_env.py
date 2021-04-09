@@ -132,16 +132,16 @@ class FarmEnv(MultiGridEnv):
         
 
 
-class FarmEnv50x50(FarmEnv):
-    def __init__(self):
-        super().__init__(size=33, #tianchen recommends 50
-        num_balls=[3,2,1], 
-        agents_index = [0,1,2],
-        agents_loc = [(1,1),(10,1),(20,1)],
-        balls_index=[0,1,2],
-        balls_reward=[1],
-        balls_loc = [[(25,2),(9,8),(5,6)],[(6,7),(18,16)],[(15,9)]],
-        zero_sum=True)
+# class FarmEnv50x50(FarmEnv):
+#     def __init__(self):
+#         super().__init__(size=33, #tianchen recommends 50
+#         num_balls=[3,2,1], 
+#         agents_index = [0,1,2],
+#         agents_loc = [(1,1),(10,1),(20,1)],
+#         balls_index=[0,1,2],
+#         balls_reward=[1],
+#         balls_loc = [[(25,2),(9,8),(5,6)],[(6,7),(18,16)],[(15,9)]],
+#         zero_sum=True)
 
 class TestFarm5x5(FarmEnv):
     def __init__(self):
@@ -151,7 +151,18 @@ class TestFarm5x5(FarmEnv):
         agents_loc = [(1,1),(3,1)],
         balls_index=[0,2],
         balls_reward=[1],
-        balls_loc = [[(1,4)],[(4,2)]],
+        balls_loc = [[(1,4)],[(5,10)]],
+        zero_sum=True)
+
+class FarmEnv50x50(FarmEnv):
+    def __init__(self):
+        super().__init__(size=353, #tianchen recommends 50
+        num_balls=[3,2,1], 
+        agents_index = [0,1,2],
+        agents_loc = [(1,1),(10,1),(20,1),(30,1),(40,1)],
+        balls_index=[0,1,2],
+        balls_reward=[1],
+        balls_loc = [[(25,2),(29,8),(5,6)],[(4,7),(18,16)],[(55,9)]],
         zero_sum=True)
 
 # class TestFarm5x5(FarmEnv):

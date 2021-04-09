@@ -8,7 +8,7 @@ from functools import reduce
 
 robots = {} #holds key:val robot_id:[failure_num, is_fixed]
 any_fixed = 0
-#robot_lock = threading.Lock()
+robot_lock = threading.Lock()
 
 
 class myThread (threading.Thread):
@@ -22,38 +22,39 @@ class myThread (threading.Thread):
         #print('Error - IN THREAD',self.threadID)
         global robots, any_fixed
         while True:
-#            robot_lock.acquire()
+            robot_lock.acquire()
             #print("in speech robots:",robots)
             #if something in dictionary and all robots are not fixed (is_fixed==0), then
             if robots and not any_fixed:#not reduce((lambda x,y: x or y),np.append(np.array(list(robots.values()))[:,1],0)): 
                 speech.SpeakText("Error at robots"+str(list(robots.keys())))
                 #while True: 
-#                robot_lock.release()
+                robot_lock.release()
                 num = int(input("Press robot number to diagnose\n"))
                # print(list(robots),num,"bool", bool(num in robots), bool(robots[num]))
                 if num in robots:
                     if robots[num][0]==0: #fixes robot with error code zero
                         speech.hear_command("fix robot")
- #                       robot_lock.acquire()
+                        robot_lock.acquire()
                         print("Robot",num,"fixed!")
                         robots[num][1]=True
                     elif robots[num][0]==1: #fixes robot with error code zero
                         speech.hear_command("move around")
-#                        robot_lock.acquire()
+                        robot_lock.acquire()
                         print("Robot",num,"fixed!")
                         robots[num][1]=True
                        # robot_lock.release()
                     elif robots[num][0]==2: #fixes robot with error code zero
                         speech.hear_command("sending human")
-#                        robot_lock.acquire()
+                        robot_lock.acquire()
                         print("Robot",num,"fixed!")
                         robots[num][1]=True
                         #robot_lock.release()
                     #break
                     any_fixed = True
+                    #break #terminates thread
                 else:
                     print("That robot number is not broken")
-#            robot_lock.release()
+            robot_lock.release()
         self.terminated = 1
         # threads[self.threadID] = myThread(self.threadID,"Robot-"+str(self.threadID),5)
         # threads[self.threadID].daemon = True
@@ -87,10 +88,10 @@ class Controller():
 
         #initialize threads
         # for i in range(num_agents):
-        self.thread = myThread(0,"Robot-Thread")
-        self.thread.daemon = True #kills the thread when main program exitss
-        print("creating thread")
-        self.thread.start()
+        # self.thread = myThread(0,"Robot-Thread")
+        # self.thread.daemon = True #kills the thread when main program exitss
+        # print("creating thread")
+        # self.thread.start()
 
     def next_action(self):
         global robots, any_fixed
@@ -101,7 +102,13 @@ class Controller():
                 self.follow_actions[i] = self.wall_left if self.dir[i]=='down' else self.wall_right
             elif self.objs[i]>=2: #so self.objs after 2 is the ball index
                 #print("Robots dict in ctrl thread",list(robots.items()))
- #               robot_lock.acquire()
+                robot_lock.acquire()
+                if not robots: #if there are no robots, create a new thread
+                    self.thread = myThread(0,"Robot-Thread")
+                    self.thread.daemon = True #kills the thread when main program exitss
+                    print("creating thread")
+                    self.thread.start()
+
                 if i in robots:
                     if robots[i][1]: #if it's fixed
                         self.follow_actions[i] = self.solve_error1
@@ -111,7 +118,7 @@ class Controller():
                 else:
                     print("Adding robot {} to failure list".format(i))
                     robots[i] = [self.objs[i]-2,False] #need some sort of struct for error type
- #               robot_lock.release()
+                robot_lock.release()
             if type(self.follow_actions[i])==list:
                 #if we are following a list of actions increment through list, otherwise just hold the current action
     #            print("follow_actions",self.follow_actions[i])
