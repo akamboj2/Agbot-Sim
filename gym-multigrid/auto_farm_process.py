@@ -4,6 +4,7 @@ from gym.envs.registration import register
 import numpy as np
 import farm_speech as speech
 from functools import reduce
+import argparse
 
 #from multiprocessing import Process
 import multiprocessing as mp
@@ -19,28 +20,53 @@ import easygui
     
 def run(robots, any_fixed):
     
-    print("In process!")
-    error_fixes = ["fix robot", "move around", "sending human"]
-
+    #print("In process!")
+    error_names = ["Row Collision","Untraversable Object", "Unrecoverable Failure"]
+    error_fixes = ["reverse and retry", "navigate around", "sending human"]
+    robot_colors = ["red", "green", "blue", "purple", "yellow"]
     while True:
     #    print("in speech robots:_run",robots,any_fixed)
         #if something in dictionary and all robots are not fixed (is_fixed==0), then
         if robots and not any_fixed.value:#not reduce((lambda x,y: x or y),np.append(np.array(list(robots.values()))[:,1],0)): 
-            print("reported error")
             #sys.stdout.flush()
-            speech.SpeakText("Error at robots"+str(list(robots.keys())))
+            
+            errors_at = list(map(lambda x: robot_colors[x], robots.keys()))
 
-            print("right before forloop",robots)
+            print("Error at robots"+str(errors_at))
+
+            if args.sound=='sound':
+                speech.beep('error')
+            elif args.sound=='word':
+                speech.SpeakText("Error at "+str(errors_at))
+            else: #use "full" here
+                speech.SpeakText("There are errors at the following robots: "+str(errors_at))
+
+            #print("right before forloop",robots)
            # callbacks = [callback1,callback2,callback3]
             
-            robot_num = easygui.buttonbox("Error at robots"+str(list(robots.keys()))+"\n \
-            what robot would you like to fix? ", 'Fix Robot', list(map(lambda x: str(x), robots.keys()))) #('0','1', '2')))
+            robot_col = easygui.buttonbox("Error at robots: "+str(errors_at)+"\n what robot would you like to fix? ", 'Fix Robot', errors_at)
             #callbacks[robots[robot_num][0]]()
-            if robot_num is not None:
-                robot_num = int(robot_num)
+            if robot_col is not None:
+                robot_num = robot_colors.index(robot_col)
+                #print("robot stuff:", robot_num, robot_col, errors_at)
                 error = robots[robot_num][0]
-                print("fixing error {}:".format(error))
+                if args.sound=='sound':
+                    for i in range(error+1):
+                        speech.beep('coin')
+                elif args.sound=='word':
+                    speech.SpeakText(str(error_names[error])) #+" at robot "+str(robot_num))
+                else:
+                    speech.SpeakText("There is a " + str(error_names[error])+" at the "+str(robot_colors[robot_num])+" robot!")
+                
+                print("Fixing error {}:".format(error_names[error]))
                 speech.hear_command(error_fixes[error])
+
+                if args.sound=='sound':
+                    speech.beep('ready')
+                elif args.sound=='word':
+                    speech.SpeakText("Robot fixed")
+                else:
+                    speech.SpeakText("The "+str(robot_colors[robot_num])+ " robot has been fixed")
                 robots[robot_num][1]=True
                 any_fixed.value = 1 #do i still need this? forgot what it was for.
 
@@ -54,7 +80,7 @@ class Controller():
         self.directions = {0:'right', 1:'down', 2:'left', 3:'up'}
         self.wall_left = ['left', 'forward', 'left']
         self.wall_right = ['right','forward','right']
-        self.solve_error1 = ['pickup', 'forward','forward']
+        self.solve_error1 = ['pickup']#, 'forward']
 
         #user inputs
         self.num_agents = num_agents
@@ -111,8 +137,14 @@ class Controller():
 
         return list(map(lambda x: self.actions[x],self.act))
 
-def main():
+parser = argparse.ArgumentParser(description=None)
+parser.add_argument('-l', '--level', default="1", type=str)
+parser.add_argument('-s', '--sound', default='word',type=str)
+# #sound vs. word vs. speech.
 
+args = parser.parse_args()
+
+def main():
     """Note: When adding to registry also need to import in __init__.py"""
     register(
         id='multigrid-farm-v0',
@@ -122,19 +154,38 @@ def main():
         id='multigrid-farmtest-v0',
         entry_point = 'gym_multigrid.envs:TestFarm5x5',
     )
+    register(
+        id='multigrid-farmlevel-v3',
+        entry_point = 'gym_multigrid.envs:FarmLevel3',
+    )
+    register(
+        id='multigrid-farmlevel-v2',
+        entry_point = 'gym_multigrid.envs:FarmLevel2',
+    )
+    register(
+        id='multigrid-farmlevel-v1',
+        entry_point = 'gym_multigrid.envs:FarmLevel1',
+    )
+
+
+ 
+    #print(args.level)
     #env = gym.make('multigrid-farm-v0')
-    env = gym.make('multigrid-farmtest-v0')
+    #env = gym.make('multigrid-farmtest-v0')
+    #env = gym.make('multigrid-farmlevel-v1')
+    env = gym.make('multigrid-farmlevel-v'+args.level)
+   
     _ = env.reset()
 
     nb_agents = len(env.agents)
 
     try:
-        #ctrl = Controller(3)
-        ctrl = Controller(2)
+        ctrl = Controller(list([1,3,5])[int(args.level)-1])
+        #ctrl = Controller(5)
 
         while True:
-            env.render(mode='human', highlight=True)
-            time.sleep(.3)
+            env.render(mode='human')
+            #time.sleep(.3)
 
             obs, reward, done, info = env.step(ctrl.next_action())
             
@@ -181,6 +232,9 @@ DIR_TO_VEC = [
 
 """
 NEXT STEPS:
+- fix at edge false positive
+- fix robot 0 facing robots 1,2 bug! (need to count cols and make sure robots placed even apart? i think)
+
 - add multiple agents and test!
 - replace speech recognition with sounds and full speech rec (harder than will be)
 - design 3-6 environments

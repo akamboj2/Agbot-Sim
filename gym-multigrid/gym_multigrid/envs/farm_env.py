@@ -1,6 +1,8 @@
 from gym_multigrid.multigrid import *
 import gym_multigrid as gym_multigrid
 
+farm_size = 20
+
 class FarmEnv(MultiGridEnv):
     """
     Environment in which the agents have to collect the balls
@@ -64,11 +66,17 @@ class FarmEnv(MultiGridEnv):
         self.grid.vert_wall(self.world, 0, 0)
         self.grid.vert_wall(self.world, width-1, 0)
 
-        
-        for number, index, location in zip(self.num_balls, self.balls_index, self.balls_loc):
-            print("gen_grid balls", number,index,location)
-            for i in range(number):
-                self.place_obj(Ball(self.world, index),top=location[i], size=(1,1))
+        if len(self.balls_loc)==0:
+            #randomize ball placement
+            for number, index in zip(self.num_balls, self.balls_index):
+                print("gen_grid balls", number,index)
+                for i in range(number):
+                    self.place_obj(Ball(self.world, index,inner_index=i))
+        else:
+            for number, index, location in zip(self.num_balls, self.balls_index, self.balls_loc):
+                print("gen_grid balls", number,index,location)
+                for i in range(number):
+                    self.place_obj(Ball(self.world, index),top=location[i], size=(1,1))
 
         # Randomize the player start position and orientation
         # for a in self.agents:
@@ -123,7 +131,17 @@ class FarmEnv(MultiGridEnv):
        # print("HERE IN HANDLES SPCECIAL MOVES!")
        # print("fwd_cell",fwd_cell)
         if type(fwd_cell) == gym_multigrid.multigrid.Ball:
-            #print("Error at robot",i, fwd_cell) 
+            #print("Error at robot",i, fwd_cell)
+
+            if fwd_cell.visible == False:
+                fwd_cell.visible = True
+            #    Grid.tile_cache = {}
+            #code copied from grid.render_tile function
+            # subdivs=3
+            # tile_size=32
+            # img = np.zeros(shape=(tile_size * subdivs, tile_size * subdivs, 3), dtype=np.uint8)
+            # fwd_cell.render(img)
+
             return 2 + fwd_cell.index
         elif type(fwd_cell) == gym_multigrid.multigrid.Wall:
 #            print(i, " hit a wall")
@@ -148,33 +166,58 @@ class TestFarm5x5(FarmEnv):
         super().__init__(size=18, #tianchen recommends 50
         num_balls=[1,1], 
         agents_index = [0,1],
-        agents_loc = [(1,1),(3,1)],
+        agents_loc = [(1,1),(6,1)],
         balls_index=[0,2],
         balls_reward=[1],
-        balls_loc = [[(1,4)],[(5,10)]],
+        balls_loc = [[(1,4)],[(8,10)]],
         zero_sum=True)
 
 class FarmEnv50x50(FarmEnv):
     def __init__(self):
-        super().__init__(size=353, #tianchen recommends 50
+        super().__init__(size=53, #tianchen recommends 50
         num_balls=[3,2,1], 
         agents_index = [0,1,2],
         agents_loc = [(1,1),(10,1),(20,1),(30,1),(40,1)],
         balls_index=[0,1,2],
         balls_reward=[1],
-        balls_loc = [[(25,2),(29,8),(5,6)],[(4,7),(18,16)],[(55,9)]],
+        balls_loc = [[(25,2),(29,8),(5,6)],[(4,7),(18,16)],[(40,9)]],
         zero_sum=True)
 
-# class TestFarm5x5(FarmEnv):
-#     def __init__(self):
-#         super().__init__(size=7, #tianchen recommends 50
-#         num_balls=[1,1,1], 
-#         agents_index = [0],
-#         agents_loc = [(1,1)],
-#         balls_index=[0,1,2],
-#         balls_reward=[1],
-#         balls_loc = [[(1,4)],[(2,3)],[(3,4)]],
-#         zero_sum=True)
+#BELOW are the actual Farms - we need 3!
+
+class FarmLevel3(FarmEnv):
+    def __init__(self):
+        super().__init__(size=farm_size+2, #tianchen recommends 50
+        num_balls=[2,2,2], 
+        agents_index = [0,1,2,3,4],
+        agents_loc = [(1,1),(5,1),(9,1),(13,1),(17,1)], #(farm_size//5+1,1),(farm_size//5*2+1,1),(farm_size//5*3+1,1),(farm_size//5*4+1,1)],
+        balls_index=[0,1,2],
+        balls_reward=[1],
+        balls_loc = [],
+        zero_sum=True)
+
+class FarmLevel2(FarmEnv):
+    def __init__(self):
+        super().__init__(size=farm_size+2, #tianchen recommends 50
+        num_balls=[2,2,2], 
+        agents_index = [0,1,2],
+        agents_loc = [(1,1),(7,1),(13,1)], #(farm_size//3+1,1),(farm_size//3*2,1)], #(9,1),(18,1)],
+        balls_index=[0,1,2],
+        balls_reward=[1],
+        balls_loc = [],
+        zero_sum=True)
+
+class FarmLevel1(FarmEnv):
+    def __init__(self):
+        super().__init__(size=farm_size+2, #tianchen recommends 50
+        num_balls=[2,2,2], 
+        agents_index = [0],
+        agents_loc = [(1,1)],
+        balls_index=[0,1,2],
+        balls_reward=[1],
+        balls_loc = [],
+        zero_sum=True)
+
 
 """
 helpful link how to setup custom environments:

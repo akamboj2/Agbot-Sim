@@ -346,16 +346,27 @@ class Key(WorldObj):
 
 
 class Ball(WorldObj):
-    def __init__(self, world, index=0, reward=1):
+    def __init__(self, world, index=0, inner_index=0, reward=1):
         super(Ball, self).__init__(world, 'ball', world.IDX_TO_COLOR[index])
         self.index = index
+        self.inner_index = inner_index
         self.reward = reward
+        self.visible = False
 
     def can_pickup(self):
         return True
 
     def render(self, img):
-        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
+        if self.visible:
+            fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
+
+    def encode(self, world, current_agent=False):
+        """Encode the a description of this object as a 3-tuple of integers
+        need this to prevent multiple balls from showing when only one should be visible!"""
+        if world.encode_dim==3:
+            return (world.OBJECT_TO_IDX[self.type], world.COLOR_TO_IDX[self.color], self.visible)
+        else:
+            return (world.OBJECT_TO_IDX[self.type], world.COLOR_TO_IDX[self.color], self.visible, 0, 0, 0)
 
 
 class Box(WorldObj):
@@ -687,7 +698,6 @@ class Grid:
         :param r: target renderer object
         :param tile_size: tile size in pixels
         """
-
         # Compute the total grid size
         width_px = self.width * tile_size
         height_px = self.height * tile_size
@@ -698,7 +708,6 @@ class Grid:
         for j in range(0, self.height):
             for i in range(0, self.width):
                 cell = self.get(i, j)
-
                 # agent_here = np.array_equal(agent_pos, (i, j))
                 tile_img = Grid.render_tile(
                     world,
@@ -1170,9 +1179,14 @@ class MultiGridEnv(gym.Env):
 
             num_tries += 1
 
+            # pos = np.array((
+            #     self._rand_int(top[0], min(top[0] + size[0], self.grid.width)),
+            #     self._rand_int(top[1], min(top[1] + size[1], self.grid.height))
+            # ))
+            #NOTE: here it will be truly random, not saved with the classes random seed!
             pos = np.array((
-                self._rand_int(top[0], min(top[0] + size[0], self.grid.width)),
-                self._rand_int(top[1], min(top[1] + size[1], self.grid.height))
+                np.random.randint(top[0], min(top[0] + size[0], self.grid.width)),
+                np.random.randint(top[1], min(top[1] + size[1], self.grid.height))
             ))
 
             # Don't place the object on top of another object

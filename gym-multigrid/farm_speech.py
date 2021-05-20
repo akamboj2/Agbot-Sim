@@ -4,6 +4,12 @@
 
 import speech_recognition as sr 
 import pyttsx3 
+import beepy as bp
+
+def beep(sound):
+    #Arguments 1 : 'coin', 2 : 'robot_error', 3 : 'error', 
+    # 4 : 'ping', 5 : 'ready', 6 : 'success', 7 : 'wilhelm'
+    bp.beep(sound)
 
 def SpeakText(command): 
 	"""Speaks a command"""
@@ -39,7 +45,7 @@ def hear_command(desired_cmd):
                 MyText = r.recognize_google(audio2) 
                 MyText = MyText.lower() 
 
-                print("Did you say "+MyText)
+                print("Did you say: "+MyText)
                 if MyText==desired_cmd: 
                     return 0
         except sr.RequestError as e: 
@@ -47,3 +53,5 @@ def hear_command(desired_cmd):
             
         except sr.UnknownValueError: 
             print("unknown error occured") 
+        except:
+            print("Other Audio Driver Error") #try reproducing with level 2 saying "reverse and retrying"
