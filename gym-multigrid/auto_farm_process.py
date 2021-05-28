@@ -76,7 +76,7 @@ class Controller():
     def __init__(self, num_agents):
 
         #these are set internal helper variables
-        self.actions = {'left':1,'right':2,'forward':3, 'pickup':4}
+        self.actions = {'still':0,'left':1,'right':2,'forward':3, 'pickup':4}
         self.directions = {0:'right', 1:'down', 2:'left', 3:'up'}
         self.wall_left = ['left', 'forward', 'left']
         self.wall_right = ['right','forward','right']
@@ -91,11 +91,12 @@ class Controller():
         self.follow_actions = [0]*num_agents #boolean array, indicates if a robot is following a list
         self.objs = [0]*num_agents #0=nothing, 1=wall, 2=obstacle
         self.dir = [0]*num_agents
+        self.pos = [[0,0]]*num_agents
         #mp.set_start_method('fork')
 
         #variables shared across process
         self.manager = mp.Manager()
-        self.robots = self.manager.dict()
+        self.robots = self.manager.dict() #error robot
         self.any_fixed = mp.Value('i',0)
         self.proc = mp.Process(target=run,args=(self.robots, self.any_fixed))
         self.proc.start()
@@ -107,14 +108,13 @@ class Controller():
             if self.objs[i]==1:
                 #if you hit a wall, perform sequence of actions to turn around
                 self.follow_actions[i] = self.wall_left if self.dir[i]=='down' else self.wall_right
-            elif self.objs[i]>=2: #so self.objs after 2 is the ball index
+            elif self.objs[i]>=2 and (self.dir[i]=='up' or self.dir[i]=='down'): #so self.objs after 2 is the ball index
                 #print("Robots dict in ctrl thread",list(self.robots.items()))
- 
                 if i in self.robots:
                     if self.robots[i][1]: #if it's fixed
                         self.follow_actions[i] = self.solve_error1
                         del self.robots[i] #delete item from robot
-                        print("Just deleted robot",i)
+                        print("Just deleted robot",i,"from error dictionary")
                         self.any_fixed.value = 0
                 else:
                     print("Adding robot {} to failure list".format(i))
@@ -132,6 +132,18 @@ class Controller():
                     #still on list of aciton, keep incrementing through it
                      self.act[i] =  self.follow_actions[i][self.counters[i]] 
                      self.counters[i]+=1
+            #print("hello")
+            # if (i==0):
+            #     print("calc",args.level,self.pos[i][0], 20/5*(i+1))
+
+            # if int(args.level)==3:
+            #     print("level 3!!")
+            if self.counters[i]==0 and ((int(args.level)==2 and self.pos[i][0]>20/3*(i+1)+1) \
+                    or (int(args.level)==3 and self.pos[i][0]>20/5*(i+1)+1)):
+                    # print("in here",i,self.pos[i][0],20/5*(i+1))
+                    # print(self.pos)
+                    self.act[i]='still'
+            
         #    else:
         #        print("moved default forward")
 
@@ -190,14 +202,17 @@ def main():
             obs, reward, done, info = env.step(ctrl.next_action())
             
             #print(np.array(obs).flatten().size)
-    #      print("info:",info)
+            #print("info:",info)
             ctrl.objs = info['objs']
             ctrl.dir = list(map(lambda x: ctrl.directions[x], info['dir']))
+            ctrl.pos = info['pos']
             
             if done:
                 break
     except:
         print("Recieved ctrl-c")
+        print("Unexpected error:", sys.exc_info())
+        #raise #uncommenting this will raise the true error, but u need to have task manager open to kill the other thread then cuz ctrl c won't work!
         ctrl.proc.terminate()
 
 if __name__ == "__main__":

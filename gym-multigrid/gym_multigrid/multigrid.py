@@ -1269,9 +1269,11 @@ class MultiGridEnv(gym.Env):
 
         at_obj = []
         dirs = []
+        pos = [] #x,y positions of infront of each robot
         for i in order:
 
-            if self.agents[i].terminated or self.agents[i].paused or not self.agents[i].started or actions[i] == self.actions.still:
+            if self.agents[i].terminated or self.agents[i].paused or not self.agents[i].started:# or actions[i] == self.actions.still:
+                #we want it to still return fwd_pos and stuff for still agents...
                 continue
 
             # Get the position in front of the agent
@@ -1322,7 +1324,8 @@ class MultiGridEnv(gym.Env):
             # Done action (not used by default)
             elif actions[i] == self.actions.done:
                 pass
-
+            elif actions[i] == self.actions.still:
+                pass
             else:
                 assert False, "unknown action"
 
@@ -1332,6 +1335,7 @@ class MultiGridEnv(gym.Env):
                 #the _handle_sepcial_moves callback is define by child class
             at_obj.append(self._handle_special_moves(i, rewards, self.agents[i].front_pos, fwd_cell_post_action))
             dirs.append(self.agents[i].dir)
+            pos.append(fwd_pos)
 
         if self.step_count >= self.max_steps:
             done = True
@@ -1343,7 +1347,7 @@ class MultiGridEnv(gym.Env):
 
         obs=[self.objects.normalize_obs*ob for ob in obs]
 
-        info = {'objs': at_obj,'dir':dirs}
+        info = {'objs': at_obj,'dir':dirs, 'pos':pos}
         return obs, rewards, done, info
 
     def gen_obs_grid(self):
