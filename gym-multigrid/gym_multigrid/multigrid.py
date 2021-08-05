@@ -1409,10 +1409,11 @@ class MultiGridEnv(gym.Env):
 
         return img
 
-    def render(self, mode='human', close=False, highlight=False, tile_size=TILE_PIXELS):
+    def render(self, mode='human', close=False, highlight=False, tile_size=TILE_PIXELS, text_info = None):
         """
         Render the whole-grid human view
         """
+        
 
         if close:
             if self.window:
@@ -1464,6 +1465,8 @@ class MultiGridEnv(gym.Env):
             tile_size,
             highlight_masks=highlight_masks if highlight else None
         )
+        if text_info:
+            self.window.set_caption(text_info)
 
         if mode == 'human':
             self.window.show_img(img)

@@ -59,6 +59,12 @@ class Window:
         """
 
         plt.xlabel(text)
+        # self.ax.set_xlabel('X-axis ')
+        # self.ax.set_ylabel('Y-axis ')
+
+        # self.ax.xaxis.label.set_color('yellow')        #setting up X-axis label color to yellow
+        # self.ax.yaxis.label.set_color('blue')  
+        #plt.text(350,700,"hi text")
 
     def reg_key_handler(self, key_handler):
         """
