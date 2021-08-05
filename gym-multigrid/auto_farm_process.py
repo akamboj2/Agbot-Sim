@@ -1,3 +1,11 @@
+"""
+Reminder to self on how to run:
+open anaconda
+activate speech
+cd to directory
+python auto_farm_process.py -l 1 -s word
+"""
+
 import gym
 import time
 from gym.envs.registration import register
@@ -19,7 +27,11 @@ import easygui
 #any_fixed = 0
     
 def run(robots, any_fixed):
-    
+    # app = Tk() 
+    # app.geometry('300x200')
+    # app.title("Basic Status Bar")
+
+    # statusbar = Label(app, text="on the way…", bd=1, relief=tk.SUNKEN, anchor=tk.W)
     #print("In process!")
     error_names = ["Row Collision","Untraversable Object", "Unrecoverable Failure"]
     error_fixes = ["reverse and retry", "navigate around", "sending human"]
@@ -44,7 +56,12 @@ def run(robots, any_fixed):
             #print("right before forloop",robots)
            # callbacks = [callback1,callback2,callback3]
             
-            robot_col = easygui.buttonbox("Error at robots: "+str(errors_at)+"\n what robot would you like to fix? ", 'Fix Robot', errors_at)
+            if args.interface=='gui':
+                robot_col = easygui.buttonbox("Error at robots: "+str(errors_at)+"\n what robot would you like to fix? ", 'Fix Robot', errors_at)
+            else:
+                speech.SpeakText("Error at robots: "+str(errors_at)+"\n what robot would you like to fix?")
+                robot_col = speech.hear_command(errors_at)
+
             #callbacks[robots[robot_num][0]]()
             if robot_col is not None:
                 robot_num = robot_colors.index(robot_col)
@@ -59,7 +76,7 @@ def run(robots, any_fixed):
                     speech.SpeakText("There is a " + str(error_names[error])+" at the "+str(robot_colors[robot_num])+" robot!")
                 
                 print("Fixing error {}:".format(error_names[error]))
-                speech.hear_command(error_fixes[error])
+                _ = speech.hear_command(error_fixes[error])
 
                 if args.sound=='sound':
                     speech.beep('ready')
@@ -149,9 +166,22 @@ class Controller():
 
         return list(map(lambda x: self.actions[x],self.act))
 
+    def get_status_text(self):
+        robot_colors = ["Red", "Green", "Blue", "Purple", "Yellow"]
+       # errors_at = list(map(lambda x: robot_colors[x], robots.keys()))
+        text = ""
+        for i,robo in enumerate(robot_colors):
+            text+=robo+":"
+            if i in self.robots.keys():
+                text+="ERROR"
+            text+='\n'
+        return text
+
+
 parser = argparse.ArgumentParser(description=None)
 parser.add_argument('-l', '--level', default="1", type=str)
 parser.add_argument('-s', '--sound', default='word',type=str)
+parser.add_argument('-i','--interface',default='gui',type=str)
 # #sound vs. word vs. speech.
 
 args = parser.parse_args()
@@ -195,8 +225,9 @@ def main():
         ctrl = Controller(list([1,3,5])[int(args.level)-1])
         #ctrl = Controller(5)
 
+        status_text = ""
         while True:
-            env.render(mode='human')
+            env.render(mode='human', text_info=status_text)
             #time.sleep(.3)
 
             obs, reward, done, info = env.step(ctrl.next_action())
@@ -206,7 +237,8 @@ def main():
             ctrl.objs = info['objs']
             ctrl.dir = list(map(lambda x: ctrl.directions[x], info['dir']))
             ctrl.pos = info['pos']
-            
+            status_text = ctrl.get_status_text()
+
             if done:
                 break
     except:

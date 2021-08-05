@@ -46,8 +46,12 @@ def hear_command(desired_cmd):
                 MyText = MyText.lower() 
 
                 print("Did you say: "+MyText)
-                if MyText==desired_cmd: 
-                    return 0
+                if type(desired_cmd)==list: #list of strings
+                    if MyText in desired_cmd:
+                        return MyText
+                else: #just a string
+                    if MyText==desired_cmd: 
+                        return MyText
         except sr.RequestError as e: 
             print("Could not request results; {0}".format(e)) 
             
