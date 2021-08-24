@@ -44,7 +44,7 @@ def run(robots, any_fixed):
             
             errors_at = list(map(lambda x: robot_colors[x], robots.keys()))
 
-            print("Error at robots"+str(errors_at))
+            #print("Error at robots"+str(errors_at))
 
             if args.sound=='sound':
                 speech.beep('error')
@@ -52,6 +52,7 @@ def run(robots, any_fixed):
                 speech.SpeakText("Error at "+str(errors_at))
             else: #use "full" here
                 speech.SpeakText("There are errors at the following robots: "+str(errors_at))
+                speech.SpeakText("Which robots would you like to fix?")
 
             #print("right before forloop",robots)
            # callbacks = [callback1,callback2,callback3]
@@ -59,10 +60,10 @@ def run(robots, any_fixed):
             if args.interface=='gui':
                 robot_col = easygui.buttonbox("Error at robots: "+str(errors_at)+"\n what robot would you like to fix? ", 'Fix Robot', errors_at)
             else:
-                speech.SpeakText("Error at robots: "+str(errors_at)+"\n what robot would you like to fix?")
-                robot_col = speech.hear_command(errors_at)
+               # speech.SpeakText("Error at robots: "+str(errors_at)+"\n what robot would you like to fix?")
+                #robot_col = speech.hear_command(errors_at)
+                robot_col = speech.hear_command(robots)
 
-            #callbacks[robots[robot_num][0]]()
             if robot_col is not None:
                 robot_num = robot_colors.index(robot_col)
                 #print("robot stuff:", robot_num, robot_col, errors_at)

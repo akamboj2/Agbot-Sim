@@ -18,14 +18,21 @@ def SpeakText(command):
 	engine.say(command) 
 	engine.runAndWait() 
 
-def hear_command(desired_cmd):
+def hear_command(robots):
     """waits for user to say a certain command and returns that command"""
     r = sr.Recognizer() 
     # Loop infinitely for user to 
     # speak 
+    robot_colors = ["red", "green", "blue", "purple", "yellow"]
+    #desire_cmd = list(map(lambda x: robot_colors[x], robots.keys()))
 
+    desired_cmd = robots
     while(1):	 
-        
+        if type(robots) is not str:
+            #update desired command to account for newly stopped robots
+            desired_cmd = list(map(lambda x: robot_colors[x], robots.keys()))
+
+        print("Desired Command", desired_cmd)
         # Exception handling to handle 
         # exceptions at the runtime 
         try: 
@@ -57,5 +64,8 @@ def hear_command(desired_cmd):
             
         except sr.UnknownValueError: 
             print("unknown error occured") 
+        except KeyboardInterrupt:
+            print('keyboard interrupt while listening, leaving hear_command')
+            break
         except:
             print("Other Audio Driver Error") #try reproducing with level 2 saying "reverse and retrying"

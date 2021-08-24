@@ -76,7 +76,7 @@ class FarmEnv(MultiGridEnv):
             for number, index, location in zip(self.num_balls, self.balls_index, self.balls_loc):
                 print("gen_grid balls", number,index,location)
                 for i in range(number):
-                    self.place_obj(Ball(self.world, index),top=location[i], size=(1,1))
+                    self.place_obj(Ball(self.world, index,inner_index=i),top=location[i], size=(1,1))
 
         # Randomize the player start position and orientation
         # for a in self.agents:
@@ -119,7 +119,7 @@ class FarmEnv(MultiGridEnv):
         obs, rewards, done, info = MultiGridEnv.step(self, actions)
         return obs, rewards, done, info
 
-    def _handle_special_moves(self, i, rewards, fwd_pos, fwd_cell):
+    def _handle_special_moves(self, i, rewards, fwd_pos, fwd_cell, action):
         #wait i actually don't need this callback. can just do this logic in multigrid! before line 1328
         """
         #NOTE: This is called on every move!
@@ -130,7 +130,7 @@ class FarmEnv(MultiGridEnv):
         """
        # print("HERE IN HANDLES SPCECIAL MOVES!")
        # print("fwd_cell",fwd_cell)
-        if type(fwd_cell) == gym_multigrid.multigrid.Ball:
+        if type(fwd_cell) == gym_multigrid.multigrid.Ball and action == Actions().forward:
             #print("Error at robot",i, fwd_cell)
 
             if fwd_cell.visible == False:
@@ -152,7 +152,7 @@ class FarmEnv(MultiGridEnv):
 
 # class FarmEnv50x50(FarmEnv):
 #     def __init__(self):
-#         super().__init__(size=33, #tianchen recommends 50
+#         super().__init__(size=33, 
 #         num_balls=[3,2,1], 
 #         agents_index = [0,1,2],
 #         agents_loc = [(1,1),(10,1),(20,1)],
@@ -163,13 +163,13 @@ class FarmEnv(MultiGridEnv):
 
 class TestFarm5x5(FarmEnv):
     def __init__(self):
-        super().__init__(size=18, #tianchen recommends 50
+        super().__init__(size=23, 
         num_balls=[1,1], 
         agents_index = [0,1],
         agents_loc = [(1,1),(6,1)],
         balls_index=[0,2],
         balls_reward=[1],
-        balls_loc = [[(1,4)],[(8,10)]],
+        balls_loc = [[(20,1)],[(1,20)]],
         zero_sum=True)
 
 class FarmEnv50x50(FarmEnv):
@@ -183,22 +183,22 @@ class FarmEnv50x50(FarmEnv):
         balls_loc = [[(25,2),(29,8),(5,6)],[(4,7),(18,16)],[(40,9)]],
         zero_sum=True)
 
-#BELOW are the actual Farms - we need 3!
+#BELOW are the actual Farms used - we need 3!
 
 class FarmLevel3(FarmEnv):
     def __init__(self):
-        super().__init__(size=farm_size+2, #tianchen recommends 50
+        super().__init__(size=farm_size+2, 
         num_balls=[2,2,2], 
         agents_index = [0,1,2,3,4],
         agents_loc = [(1,1),(5,1),(9,1),(13,1),(17,1)], #(farm_size//5+1,1),(farm_size//5*2+1,1),(farm_size//5*3+1,1),(farm_size//5*4+1,1)],
         balls_index=[0,1,2],
         balls_reward=[1],
-        balls_loc = [],
+        balls_loc = [[(1,20),(2,20)],[(3,20),(2,19)],[(3,19),(3,18)]],
         zero_sum=True)
 
 class FarmLevel2(FarmEnv):
     def __init__(self):
-        super().__init__(size=farm_size+2, #tianchen recommends 50
+        super().__init__(size=farm_size+2, 
         num_balls=[2,2,2], 
         agents_index = [0,1,2],
         agents_loc = [(1,1),(7,1),(13,1)], #(farm_size//3+1,1),(farm_size//3*2,1)], #(9,1),(18,1)],
@@ -209,7 +209,7 @@ class FarmLevel2(FarmEnv):
 
 class FarmLevel1(FarmEnv):
     def __init__(self):
-        super().__init__(size=farm_size+2, #tianchen recommends 50
+        super().__init__(size=farm_size+2, 
         num_balls=[2,2,2], 
         agents_index = [0],
         agents_loc = [(1,1)],
@@ -217,7 +217,6 @@ class FarmLevel1(FarmEnv):
         balls_reward=[1],
         balls_loc = [],
         zero_sum=True)
-
 
 """
 helpful link how to setup custom environments:
