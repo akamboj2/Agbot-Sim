@@ -22,6 +22,7 @@ import sys
 
 import easygui
  
+farm_size = 20
 
 #robots = {} #holds key:val robot_id:[failure_num, is_fixed]
 #any_fixed = 0
@@ -105,8 +106,8 @@ class Controller():
 
         #internal state arrays dependent on num_agents
         self.act = ['forward']*num_agents #this holds either a list of actions or a single action
-        self.counters = [0]*num_agents
-        self.follow_actions = [0]*num_agents #boolean array, indicates if a robot is following a list
+        self.counters = [0]*num_agents #this counts what action the robot is on when following a list 
+        self.follow_actions = [0]*num_agents #list of actions robot will follow.
         self.objs = [0]*num_agents #0=nothing, 1=wall, 2=obstacle
         self.dir = [0]*num_agents
         self.pos = [[0,0]]*num_agents
@@ -123,6 +124,15 @@ class Controller():
        # global robots, any_fixed
         for i in range(self.num_agents):
             #print('objs and robots:',self.objs, self.robots)
+
+
+#how to fix stand still bug!
+#soln: switch order in the next if statement and have it set robot action to still.
+#aftewards robot can resum in list because self.counter shouldn't get incremented.
+
+
+
+
             if self.objs[i]==1:
                 #if you hit a wall, perform sequence of actions to turn around
                 self.follow_actions[i] = self.wall_left if self.dir[i]=='down' else self.wall_right
@@ -130,7 +140,7 @@ class Controller():
                 #print("Robots dict in ctrl thread",list(self.robots.items()))
                 if i in self.robots:
                     if self.robots[i][1]: #if it's fixed
-                        self.follow_actions[i] = self.solve_error1
+                        self.follow_actions[i] = self.solve_error1 #this was a list, in case we want robots o move around robot
                         del self.robots[i] #delete item from robot
                         print("Just deleted robot",i,"from error dictionary")
                         self.any_fixed.value = 0
@@ -156,8 +166,9 @@ class Controller():
 
             # if int(args.level)==3:
             #     print("level 3!!")
-            if self.counters[i]==0 and ((int(args.level)==2 and self.pos[i][0]>20/3*(i+1)+1) \
-                    or (int(args.level)==3 and self.pos[i][0]>20/5*(i+1)+1)):
+            global farm_size
+            if self.counters[i]==0 and ((int(args.level)==2 and self.pos[i][0]>farm_size/3*(i+1)+1) \
+                    or (int(args.level)==3 and self.pos[i][0]>farm_size/5*(i+1)+1)):
                     # print("in here",i,self.pos[i][0],20/5*(i+1))
                     # print(self.pos)
                     self.act[i]='still'
