@@ -5,11 +5,25 @@
 import speech_recognition as sr 
 import pyttsx3 
 import beepy as bp
+import numpy as np
+import chime as ch
 
 def beep(sound):
-    #Arguments 1 : 'coin', 2 : 'robot_error', 3 : 'error', 
+    #Arguments 0==4: 'ding' 1 : 'coin', 2 : 'robot_error', 3 : 'error', 
     # 4 : 'ping', 5 : 'ready', 6 : 'success', 7 : 'wilhelm'
-    bp.beep(sound)
+    if sound>7:
+        if sound==10:
+            ch.theme('material')
+            ch.info()
+        else:
+            ch.theme('chime')
+            if sound==9:
+                ch.info()
+            elif sound==8:
+                ch.success()
+        
+    else:
+        bp.beep(sound)
 
 def SpeakText(command): 
 	"""Speaks a command"""
@@ -18,21 +32,49 @@ def SpeakText(command):
 	engine.say(command) 
 	engine.runAndWait() 
 
-def hear_command(robots):
+def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
     """waits for user to say a certain command and returns that command"""
     r = sr.Recognizer() 
     # Loop infinitely for user to 
     # speak 
     robot_colors = ["red", "green", "blue", "purple", "yellow"]
     #desire_cmd = list(map(lambda x: robot_colors[x], robots.keys()))
+    earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10}
 
     desired_cmd = robots
+    if errors_at is not None:
+        desired_cmd = errors_at
+
+    
     while(1):	 
         if type(robots) is not str:
             #update desired command to account for newly stopped robots
-            desired_cmd = list(map(lambda x: robot_colors[x], robots.keys()))
+            new_desired_cmd = list(map(lambda x: robot_colors[x], robots.keys()))
+            if desired_cmd!=new_desired_cmd:
+                for bot in new_desired_cmd:
+                    if bot not in desired_cmd:
+                        #SpeakText("Error at "+str(bot))
+                        # Play single robot failure (same as in hear_command fucntion)
+                        if args_sound=='sound':
+                            #beep('error')
+                            beep(earcons[bot])
+                        elif args_sound=='word':
+                            SpeakText("Error at "+str(bot))
+                        else: #use "full" here
+                            SpeakText(single_error_sentences[np.random.randint(0,len(single_error_sentences)-1)] % str(bot))
+            desired_cmd = new_desired_cmd
 
         print("Desired Command", desired_cmd)
+
+        # #uncomment his to auto return:
+        # if type(desired_cmd)==list: 
+        #     print("Auto return ",desired_cmd[0])
+        #     return desired_cmd[0]
+        # else:
+        #     print("Auto return ",desired_cmd)
+        #     return desired_cmd
+
+
         # Exception handling to handle 
         # exceptions at the runtime 
         try: 
