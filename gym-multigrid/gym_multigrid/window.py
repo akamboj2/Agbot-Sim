@@ -26,8 +26,8 @@ class Window:
         self.fig.canvas.set_window_title(title)
 
         # Turn off x/y axis numbering/ticks
-        self.ax.set_xticks([], [])
-        self.ax.set_yticks([], [])
+        self.ax.set_xticks([])#, [])
+        self.ax.set_yticks([])#, [])
 
         # Flag indicating the window was closed
         self.closed = False

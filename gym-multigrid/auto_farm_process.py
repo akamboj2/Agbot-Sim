@@ -245,7 +245,7 @@ def main():
     except:
         print("Recieved ctrl-c")
         print("Unexpected error:", sys.exc_info())
-        #raise #uncommenting this will raise the true error, but u need to have task manager open to kill the other thread then cuz ctrl c won't work!
+        raise #uncommenting this will raise the true error, but u need to have task manager open to kill the other thread then cuz ctrl c won't work!
         ctrl.proc.terminate()
 
 if __name__ == "__main__":
