@@ -130,7 +130,7 @@ class FarmEnv(MultiGridEnv):
         """
        # print("HERE IN HANDLES SPCECIAL MOVES!")
        # print("fwd_cell",fwd_cell)
-        if type(fwd_cell) == gym_multigrid.multigrid.Ball and action == Actions().forward:
+        if type(fwd_cell) == gym_multigrid.multigrid.Ball and (action == Actions().forward or action == Actions().still): #i think i had action =='forward' here to prevent them from triggering when they turn
             #print("Error at robot",i, fwd_cell)
 
             if fwd_cell.visible == False:
@@ -193,7 +193,7 @@ class FarmLevel3(FarmEnv):
         agents_loc = [(1,1),(5,1),(9,1),(13,1),(17,1)], #(farm_size//5+1,1),(farm_size//5*2+1,1),(farm_size//5*3+1,1),(farm_size//5*4+1,1)],
         balls_index=[0,1,2],
         balls_reward=[1],
-        balls_loc = [[(1,20),(2,20)],[(3,20),(2,19)],[(3,19),(3,18)]],
+        balls_loc = [], #[(1,20),(2,20)],[(3,20),(2,19)],[(3,19),(3,18)]
         zero_sum=True)
 
 class FarmLevel2(FarmEnv):

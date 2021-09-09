@@ -22,6 +22,7 @@ import sys
 
 import easygui
  
+farm_size = 20
 
 #robots = {} #holds key:val robot_id:[failure_num, is_fixed]
 #any_fixed = 0
@@ -36,6 +37,19 @@ def run(robots, any_fixed):
     error_names = ["Row Collision","Untraversable Object", "Unrecoverable Failure"]
     error_fixes = ["reverse and retry", "navigate around", "sending human"]
     robot_colors = ["red", "green", "blue", "purple", "yellow"]
+    single_error_sentences = ["The %s robot is facing an error", "An error just occurred at the %s robot",
+                        "The %s robot has failed", "The %s robot is stuck", "Assitance is needed with the %s robot",
+                        "A failure occurred at the %s robot","The %s robot needs help", "There is a problem with the %s robot",
+                        " The %s needs assistance", "The % robot has encountered an obstacle", "An issue has arisen at the %s robot"]
+    multi_error_sentences = ["There are errors at the following robots: ", "An error has occurred at these robots: ", 
+                        "These are the robots that have failed: ", "The robots that are stuck are: ", "Assitance is needed with each of these robots:",
+                        "Failures have occurred at each of these robots:","These robots still need to be addressed:", "There are problems with these robots:",
+                        "Here is a list of the failed robots:", "These robots are still facing an obstacle", "The remaining robots with issues to be resolved are: "]
+    robot_fixed_sentences = ["The %s robot has been fixed", "The %s robot is now functioning again", "The %s robot's error has been solved!"]
+    failure_type_sentences = []#TODO
+    earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10}
+
+
     while True:
     #    print("in speech robots:_run",robots,any_fixed)
         #if something in dictionary and all robots are not fixed (is_fixed==0), then
@@ -45,14 +59,23 @@ def run(robots, any_fixed):
             errors_at = list(map(lambda x: robot_colors[x], robots.keys()))
 
             #print("Error at robots"+str(errors_at))
-
-            if args.sound=='sound':
-                speech.beep('error')
-            elif args.sound=='word':
-                speech.SpeakText("Error at "+str(errors_at))
-            else: #use "full" here
-                speech.SpeakText("There are errors at the following robots: "+str(errors_at))
-                speech.SpeakText("Which robots would you like to fix?")
+            #Play Robot Failure Sound (single or multi)
+            if len(errors_at)==1: # Play single robot failure (same as in hear_command fucntion)
+                if args.sound=='sound':
+                    speech.beep(earcons[errors_at[0]])
+                elif args.sound=='word':
+                    speech.SpeakText("Error at "+str(errors_at))
+                else: #use "full" here
+                    speech.SpeakText(single_error_sentences[np.random.randint(0,len(single_error_sentences)-1)] % str(errors_at))
+            else: # Play multi robot failure 
+                if args.sound=='sound':
+                    for err_robot in errors_at:
+                        speech.beep(earcons[err_robot])
+                elif args.sound=='word':
+                    speech.SpeakText("Errors at "+str(errors_at))
+                else: #use "full" here
+                    speech.SpeakText(multi_error_sentences[np.random.randint(0,len(multi_error_sentences)-1)]+str(errors_at))
+                    speech.SpeakText("Which robots would you like to fix?")
 
             #print("right before forloop",robots)
            # callbacks = [callback1,callback2,callback3]
@@ -62,12 +85,13 @@ def run(robots, any_fixed):
             else:
                # speech.SpeakText("Error at robots: "+str(errors_at)+"\n what robot would you like to fix?")
                 #robot_col = speech.hear_command(errors_at)
-                robot_col = speech.hear_command(robots)
+                robot_col = speech.hear_command(robots, args.sound, single_error_sentences, errors_at)
 
             if robot_col is not None:
                 robot_num = robot_colors.index(robot_col)
-                #print("robot stuff:", robot_num, robot_col, errors_at)
+                print("robot stuff:", robot_num, robot_col, errors_at)
                 error = robots[robot_num][0]
+                #Play Failure Type sound
                 if args.sound=='sound':
                     for i in range(error+1):
                         speech.beep('coin')
@@ -77,8 +101,9 @@ def run(robots, any_fixed):
                     speech.SpeakText("There is a " + str(error_names[error])+" at the "+str(robot_colors[robot_num])+" robot!")
                 
                 print("Fixing error {}:".format(error_names[error]))
-                _ = speech.hear_command(error_fixes[error])
+                _ = speech.hear_command(error_fixes[error], args.sound, single_error_sentences)
 
+                #Play Robot Fixed sound
                 if args.sound=='sound':
                     speech.beep('ready')
                 elif args.sound=='word':
@@ -105,8 +130,8 @@ class Controller():
 
         #internal state arrays dependent on num_agents
         self.act = ['forward']*num_agents #this holds either a list of actions or a single action
-        self.counters = [0]*num_agents
-        self.follow_actions = [0]*num_agents #boolean array, indicates if a robot is following a list
+        self.counters = [0]*num_agents #this counts what action the robot is on when following a list 
+        self.follow_actions = [0]*num_agents #list of actions robot will follow.
         self.objs = [0]*num_agents #0=nothing, 1=wall, 2=obstacle
         self.dir = [0]*num_agents
         self.pos = [[0,0]]*num_agents
@@ -123,21 +148,36 @@ class Controller():
        # global robots, any_fixed
         for i in range(self.num_agents):
             #print('objs and robots:',self.objs, self.robots)
-            if self.objs[i]==1:
-                #if you hit a wall, perform sequence of actions to turn around
-                self.follow_actions[i] = self.wall_left if self.dir[i]=='down' else self.wall_right
-            elif self.objs[i]>=2 and (self.dir[i]=='up' or self.dir[i]=='down'): #so self.objs after 2 is the ball index
-                #print("Robots dict in ctrl thread",list(self.robots.items()))
+
+            #buglog, i'm not sure why it's pausing after first error
+            #trying to print robots dict in ctrl thread and find out. it's not even saying just deleted after robot is fixed.
+            if self.objs[i]>=2: #and (self.dir[i]=='up' or self.dir[i]=='down'): #so self.objs after 2 is the ball index
+                # print("Robots dict in ctrl thread",list(self.robots.items()))
                 if i in self.robots:
+                    # print("is fixed?",self.robots[i][1])
                     if self.robots[i][1]: #if it's fixed
-                        self.follow_actions[i] = self.solve_error1
+                        #self.follow_actions[i] = self.solve_error1 #this was a list, in case we want robots o move around robot
+                        # can't follow list of actions to solve, if we want to handle edge cases, cuz then robot would be following Nested lists!
+                        #self.act[i]='pickup'
+                        if type(self.follow_actions[i])==list:
+                            self.follow_actions[i]=self.follow_actions[i][:self.counters[i]]+['pickup']+self.follow_actions[self.counters[i]:]
+                        else:
+                            self.follow_actions[i]=['pickup'] #need to do list here, so afterwards (when list is done) default self.act is set to forward again
                         del self.robots[i] #delete item from robot
                         print("Just deleted robot",i,"from error dictionary")
                         self.any_fixed.value = 0
+                        #self.act[i]='forward'
+                    else: #robots not fixed, it should stand still and not do wall checking/rest of loop
+                        self.act[i]='still'
+                        continue
                 else:
                     print("Adding robot {} to failure list".format(i))
                     self.robots[i] = self.manager.list([self.objs[i]-2,False]) #need some sort of struct for error type
-            if type(self.follow_actions[i])==list:
+            elif self.objs[i]==1:
+                #if you hit a wall, perform sequence of actions to turn around
+                self.follow_actions[i] = self.wall_left if self.dir[i]=='down' else self.wall_right
+            
+            if type(self.follow_actions[i])==list:# and self.objs[i]<2: #if we are following a list AND we are not stopped behind failure
                 #if we are following a list of actions increment through list, otherwise just hold the current action
     #            print("follow_actions",self.follow_actions[i])
     #            print("following_actions bot ",i,"counter",self.counters[i])
@@ -156,8 +196,9 @@ class Controller():
 
             # if int(args.level)==3:
             #     print("level 3!!")
-            if self.counters[i]==0 and ((int(args.level)==2 and self.pos[i][0]>20/3*(i+1)+1) \
-                    or (int(args.level)==3 and self.pos[i][0]>20/5*(i+1)+1)):
+            global farm_size
+            if self.counters[i]==0 and ((int(args.level)==2 and self.pos[i][0]>farm_size/3*(i+1)+1) \
+                    or (int(args.level)==3 and self.pos[i][0]>farm_size/5*(i+1)+1)):
                     # print("in here",i,self.pos[i][0],20/5*(i+1))
                     # print(self.pos)
                     self.act[i]='still'
@@ -217,7 +258,7 @@ def main():
     #env = gym.make('multigrid-farmtest-v0')
     #env = gym.make('multigrid-farmlevel-v1')
     env = gym.make('multigrid-farmlevel-v'+args.level)
-   
+
     _ = env.reset()
 
     nb_agents = len(env.agents)

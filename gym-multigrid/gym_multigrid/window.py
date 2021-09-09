@@ -57,14 +57,9 @@ class Window:
         """
         Set/update the caption text below the image
         """
-
-        plt.xlabel(text)
-        # self.ax.set_xlabel('X-axis ')
-        # self.ax.set_ylabel('Y-axis ')
-
-        # self.ax.xaxis.label.set_color('yellow')        #setting up X-axis label color to yellow
-        # self.ax.yaxis.label.set_color('blue')  
-        #plt.text(350,700,"hi text")
+        
+        #to set more properties of box, see: https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.text.html
+        plt.text(750,200,text,fontweight='light',bbox=dict(facecolor='moccasin', alpha=0.5),label='Status Bar:',fontsize=30)
 
     def reg_key_handler(self, key_handler):
         """

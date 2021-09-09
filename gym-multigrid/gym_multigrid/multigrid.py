@@ -1185,8 +1185,8 @@ class MultiGridEnv(gym.Env):
             # ))
             #NOTE: here it will be truly random, not saved with the classes random seed!
             pos = np.array((
-                np.random.randint(top[0], min(top[0] + size[0], self.grid.width)),
-                np.random.randint(top[1], min(top[1] + size[1], self.grid.height))
+                np.random.randint(top[0], min(top[0] + size[0], self.grid.width-2)), #NOTE: Size is the size of one grid squer!
+                np.random.randint(top[1], min(top[1] + size[1], self.grid.height-2))
             ))
 
             # Don't place the object on top of another object
