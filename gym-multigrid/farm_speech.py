@@ -26,11 +26,13 @@ def beep(sound):
         bp.beep(sound)
 
 def SpeakText(command): 
-	"""Speaks a command"""
-	# Initialize the engine 
-	engine = pyttsx3.init() 
-	engine.say(command) 
-	engine.runAndWait() 
+    """Speaks a command"""
+    # Initialize the engine 
+    engine = pyttsx3.init()
+    engine.setProperty('rate',80)
+    engine.say(command)
+    engine.runAndWait()
+
 
 def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
     """waits for user to say a certain command and returns that command"""
@@ -66,7 +68,7 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
 
         print("Desired Command", desired_cmd)
 
-        # #uncomment his to auto return:
+        #uncomment his to auto return:
         # if type(desired_cmd)==list: 
         #     print("Auto return ",desired_cmd[0])
         #     return desired_cmd[0]
@@ -85,10 +87,11 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
                 # wait for a second to let the recognizer 
                 # adjust the energy threshold based on 
                 # the surrounding noise level 
-                r.adjust_for_ambient_noise(source2, duration=0.2) 
-                
+                r.adjust_for_ambient_noise(source2, duration=.5) 
+                print("Adjusting ambient noise?")
                 #listens for the user's input 
                 audio2 = r.listen(source2) 
+                print("Done listening")
                 
                 # Using google to recognize audio 
                 MyText = r.recognize_google(audio2) 
@@ -111,3 +114,8 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
             break
         except:
             print("Other Audio Driver Error") #try reproducing with level 2 saying "reverse and retrying"
+            raise
+
+
+
+#weird, it stalls when it's listening, but right when you exit it works. maybe see if you can implment hitting a key to submit input? or see what this listening threshold is!
