@@ -47,7 +47,7 @@ def run(robots, any_fixed):
                         "Here is a list of the failed robots:", "These robots are still facing an obstacle", "The remaining robots with issues to be resolved are: "]
     robot_fixed_sentences = ["The %s robot has been fixed", "The %s robot is now functioning again", "The %s robot's error has been solved!"]
     failure_type_sentences = []#TODO
-    earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10}
+    earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10,"robot_fail":1,"robot_fixed":5}
 
 
     while True:
@@ -94,7 +94,7 @@ def run(robots, any_fixed):
                 #Play Failure Type sound
                 if args.sound=='sound':
                     for i in range(error+1):
-                        speech.beep('coin')
+                        speech.beep(earcons['robot_fail'])
                 elif args.sound=='word':
                     speech.SpeakText(str(error_names[error])) #+" at robot "+str(robot_num))
                 else:
@@ -105,7 +105,7 @@ def run(robots, any_fixed):
 
                 #Play Robot Fixed sound
                 if args.sound=='sound':
-                    speech.beep('ready')
+                    speech.beep(earcons['robot_fixed'])
                 elif args.sound=='word':
                     speech.SpeakText("Robot fixed")
                 else:
