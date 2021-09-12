@@ -36,6 +36,9 @@ class Window:
             self.closed = True
 
         self.fig.canvas.mpl_connect('close_event', close_handler)
+        
+        self.text = plt.text(1800,600,"text",fontweight='normal',bbox=dict(facecolor='moccasin', alpha=0.5),label='Status Bar:',fontsize=20) #1800,600,"Text")
+        self.listening_text = plt.text(10,1650,"text",fontweight='normal',bbox=dict(facecolor='moccasin', alpha=0.5),label='Status Bar:',fontsize=20) #1800,600,"Text")
 
     def show_img(self, img):
         """
@@ -59,7 +62,12 @@ class Window:
         """
         
         #to set more properties of box, see: https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.text.html
-        plt.text(1800,600,text,fontweight='normal',bbox=dict(facecolor='moccasin', alpha=0.5),label='Status Bar:',fontsize=20)
+        #plt.text(1800,600,text,fontweight='normal',bbox=dict(facecolor='moccasin', alpha=0.5),label='Status Bar:',fontsize=20)
+        #plt.xlabel(text)
+        self.text.set_text(text)
+
+    def set_listening_text(self,text):
+        self.listening_text.set_text(text)
 
     def reg_key_handler(self, key_handler):
         """

@@ -46,14 +46,14 @@ def SpeakText(command):
         # Saving the converted audio in a mp3 file named
         # welcome
         myobj.save(path)
-        print("saving to ", path)
+        #print("saving to ", path)
 
     # Playing the converted file
     playsound(path)
     
 
 
-def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
+def hear_command(robots, args_sound, single_error_sentences, errors_at = None, listen_text = None):
     """waits for user to say a certain command and returns that command"""
     r = sr.Recognizer() 
     # Loop infinitely for user to 
@@ -81,7 +81,7 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
                             beep(earcons[bot])
                         elif args_sound=='word':
                             SpeakText("Error at "+str(bot))
-                        else: #use "full" here
+                        elif args_sound=='full': #use "full" here
                             SpeakText(single_error_sentences[np.random.randint(0,len(single_error_sentences)-1)] % str(bot))
             desired_cmd = new_desired_cmd
 
@@ -107,16 +107,23 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
                 # adjust the energy threshold based on 
                 # the surrounding noise level 
                 r.adjust_for_ambient_noise(source2, duration=.2) 
-                print("Listening...")
+                if type(desired_cmd)==list:
+                    listening_for = "Listening for robot to fix.."
+                else:
+                    listening_for = "Listening for solution:"
+                print(listening_for)
+                listen_text.value = listening_for.encode()
                 #listens for the user's input 
                 audio2 = r.listen(source2) 
                 print("Done listening")
+                listen_text.value = b"Done listening"
                 
                 # Using google to recognize audio 
                 MyText = r.recognize_google(audio2) 
                 MyText = MyText.lower() 
 
                 print("Did you say: "+MyText)
+                listen_text.value = b"Did you say: "+MyText.encode()
                 if type(desired_cmd)==list: #list of strings
                     for failed_robot in desired_cmd:
                         if failed_robot in MyText:#MyText in desired_cmd:
@@ -126,9 +133,12 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
                         return desired_cmd
         except sr.RequestError as e: 
             print("Could not request results; {0}".format(e)) 
-            
         except sr.UnknownValueError: 
-            print("unknown error occured") 
+            print("Unknown error occured") 
+            listen_text.value = b"Unknown error occured"
+        except ValueError:
+            print("Spoken text is too long, try again")
+            listen_text.value = b"Spoken text is too long, try again"
         except KeyboardInterrupt:
             print('keyboard interrupt while listening, leaving hear_command')
             break

@@ -27,7 +27,7 @@ farm_size = 45 #also must change in farm_env.py!
 #robots = {} #holds key:val robot_id:[failure_num, is_fixed]
 #any_fixed = 0
     
-def run(robots, any_fixed):
+def run(robots, any_fixed, listen_text):
     # app = Tk() 
     # app.geometry('300x200')
     # app.title("Basic Status Bar")
@@ -45,7 +45,7 @@ def run(robots, any_fixed):
                         "These are the robots that have failed: ", "The robots that are stuck are: ", "Assistance is needed with each of these robots:",
                         "Failures have occurred at each of these robots:","These robots still need to be addressed:", "There are problems with these robots:",
                         "Here is a list of the failed robots:", "These robots are still facing an obstacle", "The remaining robots with issues to be resolved are: "]
-    robot_fixed_sentences = ["The %s robot has been fixed", "The %s robot is now functioning again", "The %s robot's error has been solved!"]
+    robot_fixed_sentences = ["The %s robot has been fixed", "The %s robot is now functioning again", "The %s robot's error has been solved!","The %s robot's error has been resolved", "The %s robot is fully functioning now"]
     failure_type_sentences = [] #TODO
     earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10,"robot_fail":1,"robot_fixed":5}
 
@@ -65,7 +65,7 @@ def run(robots, any_fixed):
                     speech.beep(earcons[errors_at[0]])
                 elif args.sound=='word':
                     speech.SpeakText("Error at "+str(errors_at))
-                else: #use "full" here
+                elif args.sound=='full': #use "full" here
                     speech.SpeakText(single_error_sentences[np.random.randint(0,len(single_error_sentences)-1)] % str(errors_at))
             else: # Play multi robot failure 
                 if args.sound=='sound':
@@ -73,7 +73,7 @@ def run(robots, any_fixed):
                         speech.beep(earcons[err_robot])
                 elif args.sound=='word':
                     speech.SpeakText("Errors at "+str(errors_at))
-                else: #use "full" here
+                elif args.sound=='full': #use "full" here
                     speech.SpeakText(multi_error_sentences[np.random.randint(0,len(multi_error_sentences)-1)]+str(errors_at))
                     speech.SpeakText("Which robot would you like to fix?")
 
@@ -85,7 +85,7 @@ def run(robots, any_fixed):
             else:
                # speech.SpeakText("Error at robots: "+str(errors_at)+"\n what robot would you like to fix?")
                 #robot_col = speech.hear_command(errors_at)
-                robot_col = speech.hear_command(robots, args.sound, single_error_sentences, errors_at)
+                robot_col = speech.hear_command(robots, args.sound, single_error_sentences, errors_at,listen_text)
 
             if robot_col is not None:
                 robot_num = robot_colors.index(robot_col)
@@ -97,19 +97,19 @@ def run(robots, any_fixed):
                         speech.beep(earcons['robot_fail'])
                 elif args.sound=='word':
                     speech.SpeakText(str(error_names[error])) #+" at robot "+str(robot_num))
-                else:
+                elif args.sound=='full':
                     speech.SpeakText("There is a " + str(error_names[error])+" at the "+str(robot_colors[robot_num])+" robot!")
                 
                 print("Fixing error {}:".format(error_names[error]))
-                _ = speech.hear_command(error_fixes[error], args.sound, single_error_sentences)
+                _ = speech.hear_command(error_fixes[error], args.sound, single_error_sentences,listen_text=listen_text)
 
                 #Play Robot Fixed sound
                 if args.sound=='sound':
                     speech.beep(earcons['robot_fixed'])
                 elif args.sound=='word':
                     speech.SpeakText("Robot fixed")
-                else:
-                    speech.SpeakText("The "+str(robot_colors[robot_num])+ " robot has been fixed")
+                elif args.sound=='full':
+                    speech.SpeakText(robot_fixed_sentences[np.random.randint(0,len(robot_fixed_sentences)-1)] % str(robot_colors[robot_num]))
                 robots[robot_num][1]=True
                 any_fixed.value = 1 #do i still need this? forgot what it was for.
 
@@ -141,11 +141,11 @@ class Controller():
         self.manager = mp.Manager()
         self.robots = self.manager.dict() #error robot
         self.any_fixed = mp.Value('i',0)
-        self.proc = mp.Process(target=run,args=(self.robots, self.any_fixed))
+        self.listen_text = mp.Array('c', b'                                               '*3)
+        self.proc = mp.Process(target=run,args=(self.robots, self.any_fixed,self.listen_text))
         self.proc.start()
 
     def next_action(self):
-       # global robots, any_fixed
         for i in range(self.num_agents):
             #print('objs and robots:',self.objs, self.robots)
 
@@ -225,7 +225,7 @@ class Controller():
 parser = argparse.ArgumentParser(description=None)
 parser.add_argument('-l', '--level', default="1", type=str)
 parser.add_argument('-s', '--sound', default='word',type=str)
-parser.add_argument('-i','--interface',default='gui',type=str)
+parser.add_argument('-i','--interface',default='not-gui',type=str)
 # #sound vs. word vs. speech.
 
 args = parser.parse_args()
@@ -271,8 +271,9 @@ def main():
 
         status_text = ""
         while True:
-            env.render(mode='human', text_info=status_text)
-            #time.sleep(.3)
+            env.render(mode='human', text_info=status_text, listen_text=ctrl.listen_text.value.decode())
+            #time.sleep(.5) #use for experiments!
+            
 
             obs, reward, done, info = env.step(ctrl.next_action())
             
