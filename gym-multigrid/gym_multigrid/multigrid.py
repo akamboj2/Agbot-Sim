@@ -1157,7 +1157,7 @@ class MultiGridEnv(gym.Env):
         Place an object at an empty position in the grid
 
         :param top: top-left position of the rectangle where to place
-        :param size: size of the rectangle where to place
+        :param size: size of the rectangle (subgrid) of where to randomly place the object
         :param reject_fn: function to filter out potential positions
         """
 
@@ -1171,33 +1171,50 @@ class MultiGridEnv(gym.Env):
 
         num_tries = 0
 
-        while True:
-            # This is to handle with rare cases where rejection sampling
-            # gets stuck in an infinite loop
-            if num_tries > max_tries:
-                raise RecursionError('rejection sampling failed in place_obj')
+        if size[0]<0 or size[1]<0:
+            raise ValueError("Cannot have a size < 0")
+        elif size==(1,1): 
+            #if size ==1 we want to place it in one place for sure...
+            pos = np.array(top)
 
-            num_tries += 1
-
-            # pos = np.array((
-            #     self._rand_int(top[0], min(top[0] + size[0], self.grid.width)),
-            #     self._rand_int(top[1], min(top[1] + size[1], self.grid.height))
-            # ))
-            #NOTE: here it will be truly random, not saved with the classes random seed!
-            pos = np.array((
-                np.random.randint(top[0], min(top[0] + size[0], self.grid.width-2)), #NOTE: Size is the size of one grid squer!
-                np.random.randint(top[1], min(top[1] + size[1], self.grid.height-2))
-            ))
-
+            # Check boundary
+            if pos[0]>=self.grid.width or pos[1]>=self.grid.height:
+                raise ValueError("Cannot place an object outside the grid") 
+            
             # Don't place the object on top of another object
             if self.grid.get(*pos) != None:
-                continue
+                raise RecursionError("Cannot place an object on top of another.")
 
-            # Check if there is a filtering criterion
-            if reject_fn and reject_fn(self, pos):
-                continue
+        else:
+            #otherwise try to randomly place the object
+            while True:
+                # This is to handle with rare cases where rejection sampling
+                # gets stuck in an infinite loop
+                if num_tries > max_tries:
+                    raise RecursionError('rejection sampling failed in place_obj')
 
-            break
+                num_tries += 1
+
+                # pos = np.array((
+                #     self._rand_int(top[0], min(top[0] + size[0], self.grid.width)),
+                #     self._rand_int(top[1], min(top[1] + size[1], self.grid.height))
+                # ))
+                #NOTE: here it will be truly random, not saved with the classes random seed!
+                print("TOP,size,grid.w,grid.h",top,size,self.grid.width,self.grid.height)
+                pos = np.array((
+                    np.random.randint(top[0] + 2, min(top[0] + size[0], self.grid.width-2)), 
+                    np.random.randint(top[1] + 2, min(top[1] + size[1], self.grid.height-2))
+                ))
+
+                # Don't place the object on top of another object
+                if self.grid.get(*pos) != None:
+                    continue
+
+                # Check if there is a filtering criterion
+                if reject_fn and reject_fn(self, pos):
+                    continue
+
+                break
 
         self.grid.set(*pos, obj)
 
@@ -1205,6 +1222,7 @@ class MultiGridEnv(gym.Env):
             obj.init_pos = pos
             obj.cur_pos = pos
 
+        print("Placing at: ",pos)
         return pos
 
     def put_obj(self, obj, i, j):

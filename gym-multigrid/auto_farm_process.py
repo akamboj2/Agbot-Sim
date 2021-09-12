@@ -22,7 +22,7 @@ import sys
 
 import easygui
  
-farm_size = 20
+farm_size = 45 #also must change in farm_env.py!
 
 #robots = {} #holds key:val robot_id:[failure_num, is_fixed]
 #any_fixed = 0
@@ -38,15 +38,15 @@ def run(robots, any_fixed):
     error_fixes = ["reverse and retry", "navigate around", "sending human"]
     robot_colors = ["red", "green", "blue", "purple", "yellow"]
     single_error_sentences = ["The %s robot is facing an error", "An error just occurred at the %s robot",
-                        "The %s robot has failed", "The %s robot is stuck", "Assitance is needed with the %s robot",
+                        "The %s robot has failed", "The %s robot is stuck", "Assistance is needed with the %s robot",
                         "A failure occurred at the %s robot","The %s robot needs help", "There is a problem with the %s robot",
-                        " The %s needs assistance", "The % robot has encountered an obstacle", "An issue has arisen at the %s robot"]
+                        " The %s robot needs assistance", "The % robot has encountered an obstacle", "An issue has arisen at the %s robot"]
     multi_error_sentences = ["There are errors at the following robots: ", "An error has occurred at these robots: ", 
-                        "These are the robots that have failed: ", "The robots that are stuck are: ", "Assitance is needed with each of these robots:",
+                        "These are the robots that have failed: ", "The robots that are stuck are: ", "Assistance is needed with each of these robots:",
                         "Failures have occurred at each of these robots:","These robots still need to be addressed:", "There are problems with these robots:",
                         "Here is a list of the failed robots:", "These robots are still facing an obstacle", "The remaining robots with issues to be resolved are: "]
     robot_fixed_sentences = ["The %s robot has been fixed", "The %s robot is now functioning again", "The %s robot's error has been solved!"]
-    failure_type_sentences = []#TODO
+    failure_type_sentences = [] #TODO
     earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10,"robot_fail":1,"robot_fixed":5}
 
 
@@ -75,7 +75,7 @@ def run(robots, any_fixed):
                     speech.SpeakText("Errors at "+str(errors_at))
                 else: #use "full" here
                     speech.SpeakText(multi_error_sentences[np.random.randint(0,len(multi_error_sentences)-1)]+str(errors_at))
-                    speech.SpeakText("Which robots would you like to fix?")
+                    speech.SpeakText("Which robot would you like to fix?")
 
             #print("right before forloop",robots)
            # callbacks = [callback1,callback2,callback3]
@@ -89,7 +89,7 @@ def run(robots, any_fixed):
 
             if robot_col is not None:
                 robot_num = robot_colors.index(robot_col)
-                print("robot stuff:", robot_num, robot_col, errors_at)
+                # print("robot stuff:", robot_num, robot_col, errors_at)
                 error = robots[robot_num][0]
                 #Play Failure Type sound
                 if args.sound=='sound':
@@ -164,7 +164,7 @@ class Controller():
                         else:
                             self.follow_actions[i]=['pickup'] #need to do list here, so afterwards (when list is done) default self.act is set to forward again
                         del self.robots[i] #delete item from robot
-                        print("Just deleted robot",i,"from error dictionary")
+                    #    print("Just deleted robot",i,"from error dictionary")
                         self.any_fixed.value = 0
                         #self.act[i]='forward'
                     else: #robots not fixed, it should stand still and not do wall checking/rest of loop
@@ -216,6 +216,8 @@ class Controller():
             text+=robo+":"
             if i in self.robots.keys():
                 text+="ERROR"
+            else:
+                text+="     "
             text+='\n'
         return text
 

@@ -8,6 +8,12 @@ import beepy as bp
 import numpy as np
 import chime as ch
 
+from gtts import gTTS
+from playsound import playsound
+
+import os
+
+
 def beep(sound):
     #Arguments 0==4: 'ding' 1 : 'coin', 2 : 'robot_error', 3 : 'error', 
     # 4 : 'ping', 5 : 'ready', 6 : 'success', 7 : 'wilhelm'
@@ -27,11 +33,24 @@ def beep(sound):
 
 def SpeakText(command): 
     """Speaks a command"""
-    # Initialize the engine 
-    engine = pyttsx3.init()
-    engine.setProperty('rate',80)
-    engine.say(command)
-    engine.runAndWait()
+    # # Initialize the engine 
+    # engine = pyttsx3.init()
+    # #engine.setProperty('rate',80)
+    # engine.say(command)
+    # engine.runAndWait()
+    path = "spearcons/"+command.replace(" ","_")+".mp3"
+
+    if not os.path.exists(path):
+        myobj = gTTS(text=command, lang='en', slow=False)
+
+        # Saving the converted audio in a mp3 file named
+        # welcome
+        myobj.save(path)
+        print("saving to ", path)
+
+    # Playing the converted file
+    playsound(path)
+    
 
 
 def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
@@ -66,7 +85,7 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
                             SpeakText(single_error_sentences[np.random.randint(0,len(single_error_sentences)-1)] % str(bot))
             desired_cmd = new_desired_cmd
 
-        print("Desired Command", desired_cmd)
+        #print("Desired Command", desired_cmd)
 
         #uncomment his to auto return:
         # if type(desired_cmd)==list: 
@@ -87,8 +106,8 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
                 # wait for a second to let the recognizer 
                 # adjust the energy threshold based on 
                 # the surrounding noise level 
-                r.adjust_for_ambient_noise(source2, duration=.5) 
-                print("Adjusting ambient noise?")
+                r.adjust_for_ambient_noise(source2, duration=.2) 
+                print("Listening...")
                 #listens for the user's input 
                 audio2 = r.listen(source2) 
                 print("Done listening")
@@ -99,11 +118,12 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None):
 
                 print("Did you say: "+MyText)
                 if type(desired_cmd)==list: #list of strings
-                    if MyText in desired_cmd:
-                        return MyText
+                    for failed_robot in desired_cmd:
+                        if failed_robot in MyText:#MyText in desired_cmd:
+                            return failed_robot
                 else: #just a string
-                    if MyText==desired_cmd: 
-                        return MyText
+                    if desired_cmd in MyText: #MyText==desired_cmd: 
+                        return desired_cmd
         except sr.RequestError as e: 
             print("Could not request results; {0}".format(e)) 
             

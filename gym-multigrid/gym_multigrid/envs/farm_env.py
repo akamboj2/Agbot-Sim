@@ -1,7 +1,7 @@
 from gym_multigrid.multigrid import *
 import gym_multigrid as gym_multigrid
 
-farm_size = 20
+farm_size = 45 #also must change in auto_farm_process.py!
 
 class FarmEnv(MultiGridEnv):
     """
@@ -103,7 +103,7 @@ class FarmEnv(MultiGridEnv):
                     rewards[j] -= reward
 
     def _handle_pickup(self, i, rewards, fwd_pos, fwd_cell):
-        print("picking it up!",fwd_cell,fwd_pos)
+        # print("picking it up!",fwd_cell,fwd_pos)
         if fwd_cell:
             if fwd_cell.can_pickup():
                 #if fwd_cell.index in [0, self.agents[i].index]: 
@@ -185,12 +185,13 @@ class FarmEnv50x50(FarmEnv):
 
 #BELOW are the actual Farms used - we need 3!
 
+
 class FarmLevel3(FarmEnv):
     def __init__(self):
         super().__init__(size=farm_size+2, 
-        num_balls=[2,2,2], 
+        num_balls=[5,5,5], 
         agents_index = [0,1,2,3,4],
-        agents_loc = [(1,1),(5,1),(9,1),(13,1),(17,1)], #(farm_size//5+1,1),(farm_size//5*2+1,1),(farm_size//5*3+1,1),(farm_size//5*4+1,1)],
+        agents_loc = [(farm_size//5*0+1,1),(farm_size//5+1,1),(farm_size//5*2+1,1),(farm_size//5*3+1,1),(farm_size//5*4+1,1)], #[(1,1),(5,1),(9,1),(13,1),(17,1)], #(farm_size//5+1,1),(farm_size//5*2+1,1),(farm_size//5*3+1,1),(farm_size//5*4+1,1)],
         balls_index=[0,1,2],
         balls_reward=[1],
         balls_loc = [], #[(1,20),(2,20)],[(3,20),(2,19)],[(3,19),(3,18)]

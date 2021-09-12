@@ -59,7 +59,7 @@ class Window:
         """
         
         #to set more properties of box, see: https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.text.html
-        plt.text(750,200,text,fontweight='light',bbox=dict(facecolor='moccasin', alpha=0.5),label='Status Bar:',fontsize=30)
+        plt.text(1800,600,text,fontweight='normal',bbox=dict(facecolor='moccasin', alpha=0.5),label='Status Bar:',fontsize=20)
 
     def reg_key_handler(self, key_handler):
         """
