@@ -69,12 +69,12 @@ class FarmEnv(MultiGridEnv):
         if len(self.balls_loc)==0:
             #randomize ball placement
             for number, index in zip(self.num_balls, self.balls_index):
-                print("gen_grid balls", number,index)
+                # print("gen_grid balls", number,index)
                 for i in range(number):
                     self.place_obj(Ball(self.world, index,inner_index=i))
         else:
             for number, index, location in zip(self.num_balls, self.balls_index, self.balls_loc):
-                print("gen_grid balls", number,index,location)
+                # print("gen_grid balls", number,index,location)
                 for i in range(number):
                     self.place_obj(Ball(self.world, index,inner_index=i),top=location[i], size=(1,1))
 
@@ -85,7 +85,7 @@ class FarmEnv(MultiGridEnv):
         #NOTE: on 20x20 the top left most placeable square is 1,1 and the btm right most is 18,18 (the walls count towards the 20x20) 
         # oh also size is if you want to randomly place it in a subgrid from top as top left corner of size size
         for agent,loc in zip(self.agents, self.agents_loc):
-            print("gen agents:",agent,loc)
+            # print("gen agents:",agent,loc)
             agent.dir = 1
             self.place_agent(agent,top=loc, size = (1,1), rand_dir = False)
 

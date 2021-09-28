@@ -1,0 +1,70 @@
+Traceback (most recent call last):
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/connection.py", line 169, in _new_conn
+    conn = connection.create_connection(
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/util/connection.py", line 73, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/socket.py", line 918, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/connectionpool.py", line 699, in urlopen
+    httplib_response = self._make_request(
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/connectionpool.py", line 382, in _make_request
+    self._validate_conn(conn)
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/connectionpool.py", line 1010, in _validate_conn
+    conn.connect()
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/connection.py", line 353, in connect
+    conn = self._new_conn()
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/connection.py", line 181, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPSConnection object at 0x7fcc1c0bcb50>: Failed to establish a new connection: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/requests/adapters.py", line 439, in send
+    resp = conn.urlopen(
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/connectionpool.py", line 755, in urlopen
+    retries = retries.increment(
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/urllib3/util/retry.py", line 574, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='translate.google.com', port=443): Max retries exceeded with url: /_/TranslateWebserverUi/data/batchexecute (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fcc1c0bcb50>: Failed to establish a new connection: [Errno -2] Name or service not known'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/gtts/tts.py", line 264, in write_to_fp
+    r = s.send(request=pr,
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/requests/sessions.py", line 655, in send
+    r = adapter.send(request, **kwargs)
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/requests/adapters.py", line 516, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='translate.google.com', port=443): Max retries exceeded with url: /_/TranslateWebserverUi/data/batchexecute (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fcc1c0bcb50>: Failed to establish a new connection: [Errno -2] Name or service not known'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/multiprocessing/process.py", line 315, in _bootstrap
+    self.run()
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "auto_farm_process.py", line 78, in run
+    speech.SpeakText(multi_error_sentences[np.random.randint(0,len(multi_error_sentences)-1)]+str(errors_at))
+  File "/home/autofarm/hcal_code_thesis/gym-multigrid/farm_speech.py", line 53, in SpeakText
+    myobj.save(path)
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/gtts/tts.py", line 313, in save
+    self.write_to_fp(f)
+  File "/home/autofarm/anaconda3/envs/sound/lib/python3.8/site-packages/gtts/tts.py", line 280, in write_to_fp
+    raise gTTSError(tts=self)
+gtts.tts.gTTSError: Failed to connect. Probable cause: Unknown
+^CRecieved ctrl-c
+Unexpected error: (<class 'KeyboardInterrupt'>, KeyboardInterrupt(), <traceback object at 0x7fcc1b0c1ec0>)
+Traceback (most recent call last):
+  File "auto_farm_process.py", line 298, in <module>
+    main()
+  File "auto_farm_process.py", line 277, in main
+    time.sleep(.5) #use for experiments!
+KeyboardInterrupt

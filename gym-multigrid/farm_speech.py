@@ -12,24 +12,29 @@ from gtts import gTTS
 from playsound import playsound
 
 import os
-
+import time
 
 def beep(sound):
     #Arguments 0==4: 'ding' 1 : 'coin', 2 : 'robot_error', 3 : 'error', 
     # 4 : 'ping', 5 : 'ready', 6 : 'success', 7 : 'wilhelm'
-    if sound>7:
-        if sound==10:
-            ch.theme('material')
-            ch.info()
-        else:
-            ch.theme('chime')
-            if sound==9:
+    if type(sound)==int:
+        if sound>7:
+            if sound==10:
+                ch.theme('material')
                 ch.info()
-            elif sound==8:
-                ch.success()
-        
-    else:
-        bp.beep(sound)
+            else:
+                ch.theme('chime')
+                if sound==9:
+                    ch.info()
+                elif sound==8:
+                    ch.success()
+            
+        else:
+            bp.beep(sound)
+    elif type(sound)==str:
+        playsound("earcons/"+sound)
+
+    time.sleep(.5)
 
 def SpeakText(command): 
     """Speaks a command"""
@@ -60,8 +65,11 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None, l
     # speak 
     robot_colors = ["red", "green", "blue", "purple", "yellow"]
     #desire_cmd = list(map(lambda x: robot_colors[x], robots.keys()))
-    earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10}
-
+    #earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10}
+    earcons = {"red":"red_siren.wav","green":"green_leaves.wav","blue":"blue_water.wav","yellow":"yellow_taxi.wav", "purple":"purple_violin.wav","robot_fail":1,"robot_fixed":5}
+    alternative_fixes = {"reverse and retry":['reverse and retry', 'riversand retry','reversed and retry','reversing retry','reversen retry','riversan retry','reversing retract','reverse on the retry','reverse','retry','river','rever'],
+                    "navigate around":['navigate around','navigate','around'],
+                    "sending human":['sending human','ascending human','bending human', 'humor','sending','ending','human']}
     desired_cmd = robots
     if errors_at is not None:
         desired_cmd = errors_at
@@ -108,7 +116,7 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None, l
                 # the surrounding noise level 
                 r.adjust_for_ambient_noise(source2, duration=.2) 
                 if type(desired_cmd)==list:
-                    listening_for = "Listening for robot to fix.."
+                    listening_for = "Listening for robot to fix..."
                 else:
                     listening_for = "Listening for solution:"
                 print(listening_for)
@@ -128,9 +136,11 @@ def hear_command(robots, args_sound, single_error_sentences, errors_at = None, l
                     for failed_robot in desired_cmd:
                         if failed_robot in MyText:#MyText in desired_cmd:
                             return failed_robot
-                else: #just a string
-                    if desired_cmd in MyText: #MyText==desired_cmd: 
-                        return desired_cmd
+                else: #just a string only used for failure fixes
+                    for alt in alternative_fixes[desired_cmd]:
+                        if alt in MyText: #MyText==desired_cmd: 
+                            listen_text.value = b"Fixed"
+                            return desired_cmd
         except sr.RequestError as e: 
             print("Could not request results; {0}".format(e)) 
         except sr.UnknownValueError: 

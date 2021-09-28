@@ -23,6 +23,7 @@ import sys
 import easygui
  
 farm_size = 45 #also must change in farm_env.py!
+DEBUG = False
 
 #robots = {} #holds key:val robot_id:[failure_num, is_fixed]
 #any_fixed = 0
@@ -40,15 +41,15 @@ def run(robots, any_fixed, listen_text):
     single_error_sentences = ["The %s robot is facing an error", "An error just occurred at the %s robot",
                         "The %s robot has failed", "The %s robot is stuck", "Assistance is needed with the %s robot",
                         "A failure occurred at the %s robot","The %s robot needs help", "There is a problem with the %s robot",
-                        " The %s robot needs assistance", "The % robot has encountered an obstacle", "An issue has arisen at the %s robot"]
+                        " The %s robot needs assistance", "The % rrobot has encountered an obstacle", "An issue has arisen at the %s robot"]
     multi_error_sentences = ["There are errors at the following robots: ", "An error has occurred at these robots: ", 
                         "These are the robots that have failed: ", "The robots that are stuck are: ", "Assistance is needed with each of these robots:",
                         "Failures have occurred at each of these robots:","These robots still need to be addressed:", "There are problems with these robots:",
                         "Here is a list of the failed robots:", "These robots are still facing an obstacle", "The remaining robots with issues to be resolved are: "]
     robot_fixed_sentences = ["The %s robot has been fixed", "The %s robot is now functioning again", "The %s robot's error has been solved!","The %s robot's error has been resolved", "The %s robot is fully functioning now"]
-    failure_type_sentences = [] #TODO
-    earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10,"robot_fail":1,"robot_fixed":5}
-
+    failure_type_sentences = ["There is a %s at the %s robot!", "The error is %s at the %s robot!"] #TODO
+    #earcons = {"red":3, "green":4, "blue":8, "purple":9, "yellow":10,"robot_fail":1,"robot_fixed":5}
+    earcons = {"red":"red_siren.wav","green":"green_leaves.wav","blue":"blue_water.wav","yellow":"yellow_taxi.wav", "purple":"purple_violin.wav","robot_fail":1,"robot_fixed":5}
 
     while True:
     #    print("in speech robots:_run",robots,any_fixed)
@@ -98,9 +99,9 @@ def run(robots, any_fixed, listen_text):
                 elif args.sound=='word':
                     speech.SpeakText(str(error_names[error])) #+" at robot "+str(robot_num))
                 elif args.sound=='full':
-                    speech.SpeakText("There is a " + str(error_names[error])+" at the "+str(robot_colors[robot_num])+" robot!")
+                    speech.SpeakText(failure_type_sentences[np.random.randint(0,len(failure_type_sentences)-1)] % (str(error_names[error]),str(robot_colors[robot_num])))#"There is a " + str(error_names[error])+" at the "+str(robot_colors[robot_num])+" robot!")
                 
-                print("Fixing error {}:".format(error_names[error]))
+                if DEBUG: print("Fixing error {}:".format(error_names[error]))
                 _ = speech.hear_command(error_fixes[error], args.sound, single_error_sentences,listen_text=listen_text)
 
                 #Play Robot Fixed sound
@@ -110,6 +111,7 @@ def run(robots, any_fixed, listen_text):
                     speech.SpeakText("Robot fixed")
                 elif args.sound=='full':
                     speech.SpeakText(robot_fixed_sentences[np.random.randint(0,len(robot_fixed_sentences)-1)] % str(robot_colors[robot_num]))
+                    time.sleep(.1)
                 robots[robot_num][1]=True
                 any_fixed.value = 1 #do i still need this? forgot what it was for.
 
@@ -171,7 +173,7 @@ class Controller():
                         self.act[i]='still'
                         continue
                 else:
-                    print("Adding robot {} to failure list".format(i))
+                    if DEBUG: print("Adding robot {} to failure list".format(i))
                     self.robots[i] = self.manager.list([self.objs[i]-2,False]) #need some sort of struct for error type
             elif self.objs[i]==1:
                 #if you hit a wall, perform sequence of actions to turn around
@@ -197,8 +199,9 @@ class Controller():
             # if int(args.level)==3:
             #     print("level 3!!")
             global farm_size
-            if self.counters[i]==0 and ((int(args.level)==2 and self.pos[i][0]>farm_size/3*(i+1)+1) \
-                    or (int(args.level)==3 and self.pos[i][0]>farm_size/5*(i+1)+1)):
+            #print(self.pos)
+            if ((int(args.level)==2 and self.pos[i][0]>farm_size/3*(i+1)+1) \
+                    or (int(args.level)==3 and (self.pos[i][0]>farm_size/5*(i+1) and self.pos[i][1]>=farm_size))): #also had: self.counters[i]==0 and , but counters shouldn't matter
                     # print("in here",i,self.pos[i][0],20/5*(i+1))
                     # print(self.pos)
                     self.act[i]='still'
@@ -272,7 +275,7 @@ def main():
         status_text = ""
         while True:
             env.render(mode='human', text_info=status_text, listen_text=ctrl.listen_text.value.decode())
-            #time.sleep(.5) #use for experiments!
+            time.sleep(.5) #use for experiments!
             
 
             obs, reward, done, info = env.step(ctrl.next_action())

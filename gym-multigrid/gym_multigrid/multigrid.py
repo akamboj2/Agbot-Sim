@@ -1200,7 +1200,7 @@ class MultiGridEnv(gym.Env):
                 #     self._rand_int(top[1], min(top[1] + size[1], self.grid.height))
                 # ))
                 #NOTE: here it will be truly random, not saved with the classes random seed!
-                print("TOP,size,grid.w,grid.h",top,size,self.grid.width,self.grid.height)
+                #print("TOP,size,grid.w,grid.h",top,size,self.grid.width,self.grid.height)
                 pos = np.array((
                     np.random.randint(top[0] + 2, min(top[0] + size[0], self.grid.width-2)), 
                     np.random.randint(top[1] + 2, min(top[1] + size[1], self.grid.height-2))
@@ -1222,7 +1222,7 @@ class MultiGridEnv(gym.Env):
             obj.init_pos = pos
             obj.cur_pos = pos
 
-        print("Placing at: ",pos)
+        #print("Placing at: ",pos)
         return pos
 
     def put_obj(self, obj, i, j):
