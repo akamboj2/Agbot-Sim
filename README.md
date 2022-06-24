@@ -1,5 +1,5 @@
 # Agbot Farm Simulation (Agbot-Sim)
-Used in experiments for "Examining Audio Communication Mechanisms for \\ Supervising Fleets of Agricultural Robots"
+Used in experiments for **"Examining Audio Communication Mechanisms for Supervising Fleets of Agricultural Robots"**
 
 Agbot fleet farm simulation built on the [Multi-Agent Gridworld Environment](https://github.com/ArnaudFickinger/gym-multigrid)
 
