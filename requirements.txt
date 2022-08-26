@@ -1,0 +1,37 @@
+beautifulsoup4==4.9.3
+beepy==1.0.7
+comtypes==1.1.8
+docopt==0.6.2
+js2py==0.70
+pipwin==0.5.1
+pyjsparser==2.7.1
+pypiwin32==223
+pyprind==2.11.2
+pysmartdl==1.3.4
+pysoundfile==0.9.0.post1
+pyttsx3==2.90
+pytz==2021.1
+simpleaudio==1.0.4
+soupsieve==2.2
+tzlocal==2.1
+pyreadline==2.1
+
+# msys2-conda-epoc
+# pywin32-ctypes==0.2.0
+# vc==14.1
+# m2w64-gmp==6.1.0
+# m2w64-gcc-libs==5.3.0
+# winpty==0.4.3
+# pywinpty==0.5.7
+# vs2015_runtime==14.16.27012
+# pywin32==227
+# m2w64-gcc-libs-core==5.3.0
+# m2w64-gcc-libgfortran==5.3.0
+# win_inet_pton==1.1.0
+# wincertstore==0.2
+# icc_rt==2019.0.0
+# m2w64-libwinpthread-git==5.0.0.4634.697f757
+# icc_rt==2019.0.0
+# winpty==0.4.3
+# pywin32-ctypes==0.2.0
+# m2w64-gmp==6.1.0

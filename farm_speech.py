@@ -3,7 +3,7 @@
 # speech to text and text to speech 
 
 import speech_recognition as sr 
-import pyttsx3 
+# import pyttsx3 
 import beepy as bp
 import numpy as np
 import chime as ch
